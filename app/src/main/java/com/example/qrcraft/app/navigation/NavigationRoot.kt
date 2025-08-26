@@ -1,6 +1,9 @@
 package com.example.qrcraft.app.navigation
 
+import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -10,11 +13,14 @@ import com.example.qrcraft.scanner.presentation.result.ResultScreen
 import com.example.qrcraft.scanner.presentation.scanner.ScannerScreenRoot
 import com.example.qrcraft.scanner.presentation.scanner.components.SetStatusBarIconsColor
 import kotlinx.serialization.json.Json
+import kotlin.system.exitProcess
 
 @Composable
 fun NavigationRoot(
     navController: NavHostController,
 ) {
+    val activity = (LocalActivity.current as Activity)
+
     SetStatusBarIconsColor(darkIcons = false)
 
     NavHost(
@@ -26,6 +32,10 @@ fun NavigationRoot(
                 onScanResult = { barcodeData ->
                     val jsonBarcode = Json.encodeToString(barcodeData)
                     navController.navigate(NavigationRoute.Result(jsonBarcode))
+                },
+                onCloseApp = {
+                    ActivityCompat.finishAffinity(activity)
+                    exitProcess(0)
                 }
             )
         }

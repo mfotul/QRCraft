@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -51,7 +52,6 @@ fun ResultScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     val context = LocalContext.current
     var extraText by remember { mutableStateOf("") }
 
@@ -62,20 +62,20 @@ fun ResultScreen(
             )
         },
         containerColor = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
     ) { innerPadding ->
         Box(
-            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .wrapContentSize(Alignment.Center)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .widthIn(max = 480.dp)
                     .fillMaxWidth(0.9f)
-                    .verticalScroll(rememberScrollState())
             ) {
                 QrCodeCard(
                     modifier = Modifier.zIndex(1f)

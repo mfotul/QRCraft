@@ -1,8 +1,11 @@
 package com.example.qrcraft.scanner.presentation.scanner
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.LifecycleCameraController
@@ -16,6 +19,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,14 +47,15 @@ import com.example.qrcraft.scanner.presentation.scanner.components.ErrorDialog
 import com.example.qrcraft.scanner.presentation.scanner.components.LoadingIndicator
 import com.example.qrcraft.scanner.presentation.scanner.components.ScannerOverlay
 import com.example.qrcraft.scanner.presentation.scanner.components.ScannerSnackBar
-import com.example.qrcraft.scanner.presentation.scanner.components.SetStatusBarIconsColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
+@SuppressLint("SourceLockedOrientationActivity")
 @Composable
 fun ScannerScreenRoot(
     onScanResult: (BarcodeData) -> Unit,
+    onCloseApp: () -> Unit,
     viewModel: ScannerViewModel = koinViewModel(),
 ) {
 
@@ -58,6 +63,7 @@ fun ScannerScreenRoot(
     val context = LocalContext.current
     val applicationContext = LocalContext.current.applicationContext
     val lifecycleOwner = LocalLifecycleOwner.current
+    val activity = LocalActivity.current as Activity
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -77,7 +83,12 @@ fun ScannerScreenRoot(
     }
     cameraController.bindToLifecycle(lifecycleOwner)
 
-
+    DisposableEffect(Unit) {
+        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        onDispose {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
@@ -100,10 +111,10 @@ fun ScannerScreenRoot(
 
     if (state.showPermissionDialog) {
         CameraPermissionDialog(
-            onClose = { (context as? Activity)?.finish() },
+            onClose = onCloseApp,
             onGrantAccess = {
-                viewModel.onAction(ScannerAction.OnGrantAccessClick)
                 permissionLauncher.launch(Manifest.permission.CAMERA)
+                viewModel.onAction(ScannerAction.OnGrantAccessClick)
             }
         )
     }
