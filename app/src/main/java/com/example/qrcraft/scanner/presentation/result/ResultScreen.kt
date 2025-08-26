@@ -183,6 +183,7 @@ fun ResultScreen(
                             }
                         }
                         Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
