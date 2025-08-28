@@ -3,15 +3,23 @@ package com.example.qrcraft.scanner.presentation.qr_form
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,7 +47,7 @@ fun QrCodeFormScreenRoot(
     viewModel: QrCodeFormViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    println("TEST: ${state.barcodeData}")
+
     QrCodeFormScreen(
         barcodeType = barcodeType,
         isButtonEnabled = state.barcodeData != null,
@@ -85,19 +93,26 @@ fun QrCodeFormScreen(
             )
         },
         containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets.safeContent,
         modifier = modifier
     ) { paddingValues ->
         Box(
+            contentAlignment = Alignment.TopCenter,
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+
+                .verticalScroll(rememberScrollState())
+                .wrapContentSize(Alignment.TopCenter)
         ) {
-            Surface(
+            Card(
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
+                    .widthIn(max = 480.dp)
+                    .fillMaxWidth(0.9f)
             ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -246,6 +261,7 @@ fun QrCodeFormScreen(
                                     .fillMaxWidth()
                             )
                         }
+
                         BarcodeType.UNKNOWN -> {}
 
                     }

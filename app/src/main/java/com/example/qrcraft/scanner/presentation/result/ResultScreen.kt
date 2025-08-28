@@ -219,7 +219,6 @@ fun ResultScreen(
                                 text = R.string.share,
                                 onClick = {
                                     uriQrCode?.let { uri ->
-                                        println("TEST: $uri")
                                         val sentIntent = Intent().apply {
                                             action = Intent.ACTION_SEND
                                             putExtra(Intent.EXTRA_TEXT, extraText)

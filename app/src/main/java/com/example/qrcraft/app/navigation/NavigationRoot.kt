@@ -66,7 +66,6 @@ fun NavigationRoot(
             val qrCodeFormRoute: NavigationRoute.QrCodeForm = backStackEntry.toRoute()
             val barcodeType = BarcodeType.valueOf(qrCodeFormRoute.barcodeType)
 
-
             QrCodeFormScreenRoot(
                 barcodeType = barcodeType,
                 onBackClick = {
