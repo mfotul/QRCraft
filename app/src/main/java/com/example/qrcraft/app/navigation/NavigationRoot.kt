@@ -9,9 +9,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.qrcraft.scanner.domain.models.BarcodeData
+import com.example.qrcraft.scanner.presentation.create_qr.CreateQRCodeScreen
+import com.example.qrcraft.scanner.presentation.models.BarcodeType
+import com.example.qrcraft.scanner.presentation.qr_form.QrCodeFormScreenRoot
 import com.example.qrcraft.scanner.presentation.result.ResultScreen
 import com.example.qrcraft.scanner.presentation.scanner.ScannerScreenRoot
-import com.example.qrcraft.scanner.presentation.scanner.components.SetStatusBarIconsColor
 import kotlinx.serialization.json.Json
 import kotlin.system.exitProcess
 
@@ -20,8 +22,6 @@ fun NavigationRoot(
     navController: NavHostController,
 ) {
     val activity = (LocalActivity.current as Activity)
-
-    SetStatusBarIconsColor(darkIcons = false)
 
     NavHost(
         navController = navController,
@@ -36,16 +36,45 @@ fun NavigationRoot(
                 onCloseApp = {
                     ActivityCompat.finishAffinity(activity)
                     exitProcess(0)
+                },
+                onCreateQRCodeClick = {
+                    navController.navigate(NavigationRoute.CreateQRCode)
                 }
             )
         }
         composable<NavigationRoute.Result> { backStackEntry ->
-            val result: NavigationRoute.Result = backStackEntry.toRoute()
-            val barcodeData = Json.decodeFromString<BarcodeData>(result.barcode)
+            val resultRoute: NavigationRoute.Result = backStackEntry.toRoute()
+            val barcodeData = Json.decodeFromString<BarcodeData>(resultRoute.barcode)
             ResultScreen(
                 barcodeData = barcodeData,
                 onBackClick = {
                     navController.popBackStack()
+                }
+            )
+        }
+        composable<NavigationRoute.CreateQRCode> {
+            CreateQRCodeScreen(
+                onScanClick = {
+                    navController.popBackStack()
+                },
+                onQrTypeClick = { barcodeType ->
+                    navController.navigate(NavigationRoute.QrCodeForm(barcodeType.name))
+                }
+            )
+        }
+        composable<NavigationRoute.QrCodeForm> { backStackEntry ->
+            val qrCodeFormRoute: NavigationRoute.QrCodeForm = backStackEntry.toRoute()
+            val barcodeType = BarcodeType.valueOf(qrCodeFormRoute.barcodeType)
+
+
+            QrCodeFormScreenRoot(
+                barcodeType = barcodeType,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onGenerateQrCodeClick = { barcodeData ->
+                    val jsonBarcode = Json.encodeToString(barcodeData)
+                    navController.navigate(NavigationRoute.Result(jsonBarcode))
                 }
             )
         }

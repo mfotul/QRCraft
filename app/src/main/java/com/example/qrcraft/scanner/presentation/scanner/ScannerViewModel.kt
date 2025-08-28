@@ -49,6 +49,7 @@ class ScannerViewModel() : ViewModel() {
             ScannerAction.OnGrantAccessClick -> closePermissionDialog()
             ScannerAction.OnCameraPermissionDenied -> showPermissionDialog()
             ScannerAction.OnCameraPermissionGranted -> permissionGranted()
+            ScannerAction.OnCreateQrClick, ScannerAction.OnHistoryScanClick, ScannerAction.OnScanClick -> {}
             is ScannerAction.OnOverlayDrawn -> overlayDrawn(action.rect)
             is ScannerAction.OnStartScanning -> setupAnalyzer(
                 context = action.context,
@@ -69,7 +70,10 @@ class ScannerViewModel() : ViewModel() {
         viewModelScope.launch {
             SnackBarController.sendEvent(
                 SnackBarEvent(
-                    message = ErrorResponse(Message.CAMERA_PERMISSION_GRANTED, ResponseType.SNACKBAR)
+                    message = ErrorResponse(
+                        Message.CAMERA_PERMISSION_GRANTED,
+                        ResponseType.SNACKBAR
+                    )
                 )
             )
         }
@@ -109,7 +113,7 @@ class ScannerViewModel() : ViewModel() {
                 )
             }
             .onEach { scanResult ->
-                when(scanResult) {
+                when (scanResult) {
                     ScanResult.Error -> {
                         SnackBarController.sendEvent(
                             SnackBarEvent(
@@ -120,6 +124,7 @@ class ScannerViewModel() : ViewModel() {
                             )
                         )
                     }
+
                     ScanResult.StartDetection -> {
                         _state.update {
                             it.copy(
@@ -127,6 +132,7 @@ class ScannerViewModel() : ViewModel() {
                             )
                         }
                     }
+
                     is ScanResult.Success -> {
                         _state.update {
                             it.copy(

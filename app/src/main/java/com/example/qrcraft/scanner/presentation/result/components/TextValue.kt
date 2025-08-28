@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.em
 import androidx.core.net.toUri
 import com.example.qrcraft.R
 import com.example.qrcraft.ui.theme.onSurfaceVariant2
@@ -69,7 +70,7 @@ fun TextValue(
                 else
                     stringResource(R.string.show_more),
                 style = MaterialTheme.typography.labelLarge.copy(
-                    letterSpacing = MaterialTheme.typography.labelLarge.fontSize * 0.01f,
+                    letterSpacing = (-0.01).em,
                 ),
                 color = if (textExpanded)
                     MaterialTheme.colorScheme.onSurfaceVariant2

@@ -4,6 +4,7 @@ import android.content.ClipData.newPlainText
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -26,9 +27,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,13 +41,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.qrcraft.R
+import com.example.qrcraft.scanner.data.QrCode
 import com.example.qrcraft.scanner.domain.models.BarcodeData
+import com.example.qrcraft.scanner.domain.models.toQrCodeGenerator
 import com.example.qrcraft.scanner.presentation.result.components.QrCodeCard
 import com.example.qrcraft.scanner.presentation.result.components.ResultButton
 import com.example.qrcraft.scanner.presentation.result.components.ResultTopBar
 import com.example.qrcraft.scanner.presentation.result.components.TextValue
 import com.example.qrcraft.scanner.presentation.result.components.TypeLabel
+import com.example.qrcraft.scanner.presentation.util.SetStatusBarIconsColor
 import com.example.qrcraft.ui.theme.QRCraftTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun ResultScreen(
@@ -53,7 +60,22 @@ fun ResultScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var extraText by remember { mutableStateOf("") }
+
+
+    SetStatusBarIconsColor(darkIcons = false)
+    val qrCodeBitmap by remember {
+        mutableStateOf(QrCode.generateQrCodeBitmap(barcodeData.toQrCodeGenerator()))
+    }
+    var uriQrCode: Uri? = null
+
+    LaunchedEffect (barcodeData) {
+        context.cacheDir.deleteRecursively()
+        coroutineScope.launch {
+            uriQrCode = QrCode.saveBitmap(context, qrCodeBitmap)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -78,6 +100,7 @@ fun ResultScreen(
                     .fillMaxWidth(0.9f)
             ) {
                 QrCodeCard(
+                    bitmap = qrCodeBitmap,
                     modifier = Modifier.zIndex(1f)
                 )
                 Card(
@@ -178,7 +201,8 @@ fun ResultScreen(
                                             )
                                         )
                                     }
-                                    extraText = "SSID: ${barcodeData.ssid}\nPassword: ${barcodeData.password}\nEncryption: ${barcodeData.type}"
+                                    extraText =
+                                        "SSID: ${barcodeData.ssid}\nPassword: ${barcodeData.password}\nEncryption: ${barcodeData.type}"
                                 }
                             }
                         }
@@ -194,13 +218,19 @@ fun ResultScreen(
                                 icon = R.drawable.share_03,
                                 text = R.string.share,
                                 onClick = {
-                                    val sentIntent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, extraText)
-                                        type = "text/plain"
+                                    uriQrCode?.let { uri ->
+                                        println("TEST: $uri")
+                                        val sentIntent = Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            putExtra(Intent.EXTRA_TEXT, extraText)
+                                            putExtra(Intent.EXTRA_STREAM, uri)
+                                            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                            type = "image/png"
+                                        }
+                                        val shareIntent = Intent.createChooser(sentIntent, null)
+                                        context.startActivity(shareIntent)
                                     }
-                                    val shareIntent = Intent.createChooser(sentIntent, null)
-                                    context.startActivity(shareIntent)
+
                                 },
                                 modifier = Modifier.weight(1f)
                             )
@@ -208,7 +238,8 @@ fun ResultScreen(
                                 icon = R.drawable.copy_01,
                                 text = R.string.copy,
                                 onClick = {
-                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clipboardManager =
+                                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                     val clipData = newPlainText("qr_code", extraText)
                                     clipboardManager.setPrimaryClip(clipData)
                                 },

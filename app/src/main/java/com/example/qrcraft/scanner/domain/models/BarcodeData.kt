@@ -41,3 +41,22 @@ sealed class BarcodeData {
         val type: String,
     ) : BarcodeData()
 }
+
+fun BarcodeData.toQrCodeGenerator(): String {
+    return when (this) {
+        is BarcodeData.Contact -> """
+    BEGIN:VCARD
+    VERSION:3.0
+    FN:$name
+    TEL:$phone
+    EMAIL:$email
+    END:VCARD
+""".trimIndent()
+
+        is BarcodeData.Geo -> "geo:$latitude,$longitude"
+        is BarcodeData.Link -> url
+        is BarcodeData.Phone -> "tel:$number"
+        is BarcodeData.Text -> text
+        is BarcodeData.Wifi -> "WIFI:S:$ssid;T:$type;P:$password;;"
+    }
+}

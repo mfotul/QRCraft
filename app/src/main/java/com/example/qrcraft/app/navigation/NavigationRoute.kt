@@ -8,4 +8,10 @@ sealed interface NavigationRoute {
 
     @Serializable
     data class Result(val barcode: String) : NavigationRoute
+
+    @Serializable
+    data object CreateQRCode : NavigationRoute
+
+    @Serializable
+    data class QrCodeForm(val barcodeType: String) : NavigationRoute
 }

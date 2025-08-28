@@ -1,5 +1,6 @@
 package com.example.qrcraft.scanner.presentation.result.components
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -9,13 +10,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.qrcraft.R
 
 @Composable
 fun QrCodeCard(
+    bitmap: Bitmap,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -30,7 +31,7 @@ fun QrCodeCard(
             .size(160.dp)
     ) {
         Image(
-            painter = painterResource(R.drawable.qr_code),
+            bitmap = bitmap.asImageBitmap(),
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = Modifier.fillMaxSize()

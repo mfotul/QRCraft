@@ -10,4 +10,7 @@ sealed interface ScannerAction {
     data object OnCameraPermissionGranted: ScannerAction
     data class OnOverlayDrawn(val rect: Rect): ScannerAction
     data class OnStartScanning(val context: Context,val cameraController: LifecycleCameraController,): ScannerAction
+    data object OnHistoryScanClick: ScannerAction
+    data object OnCreateQrClick: ScannerAction
+    data object OnScanClick: ScannerAction
 }

@@ -10,10 +10,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.waterfall
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -27,9 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,8 +46,10 @@ import com.example.qrcraft.scanner.presentation.scanner.components.CameraPermiss
 import com.example.qrcraft.scanner.presentation.scanner.components.CameraPreview
 import com.example.qrcraft.scanner.presentation.scanner.components.ErrorDialog
 import com.example.qrcraft.scanner.presentation.scanner.components.LoadingIndicator
+import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
 import com.example.qrcraft.scanner.presentation.scanner.components.ScannerOverlay
 import com.example.qrcraft.scanner.presentation.scanner.components.ScannerSnackBar
+import com.example.qrcraft.scanner.presentation.util.SetStatusBarIconsColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -56,6 +59,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ScannerScreenRoot(
     onScanResult: (BarcodeData) -> Unit,
     onCloseApp: () -> Unit,
+    onCreateQRCodeClick: () -> Unit,
     viewModel: ScannerViewModel = koinViewModel(),
 ) {
 
@@ -83,6 +87,8 @@ fun ScannerScreenRoot(
     }
     cameraController.bindToLifecycle(lifecycleOwner)
 
+    SetStatusBarIconsColor(darkIcons = false)
+
     DisposableEffect(Unit) {
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         onDispose {
@@ -98,14 +104,19 @@ fun ScannerScreenRoot(
     }
 
     ObserveAsEvents(viewModel.events) { event ->
-        when(event) {
+        when (event) {
             is ScannerEvent.OnResult -> onScanResult(event.barcodeData)
         }
     }
 
     ScannerScreen(
         isLoading = state.isLoading,
-        onAction = viewModel::onAction,
+        onAction = {
+            when (it) {
+                ScannerAction.OnCreateQrClick -> onCreateQRCodeClick()
+                else -> viewModel.onAction(it)
+            }
+        },
         cameraController = cameraController
     )
 
@@ -133,7 +144,12 @@ fun ScannerScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        onAction(ScannerAction.OnStartScanning(context =  context, cameraController = cameraController))
+        onAction(
+            ScannerAction.OnStartScanning(
+                context = context,
+                cameraController = cameraController
+            )
+        )
     }
 
     ObserveAsEvents(SnackBarController.events, snackbarHostState) { event ->
@@ -167,12 +183,11 @@ fun ScannerScreen(
                 )
             }
         },
-        contentWindowInsets = WindowInsets.waterfall,
         modifier = modifier
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
             CameraPreview(
@@ -184,6 +199,20 @@ fun ScannerScreen(
                     onAction(ScannerAction.OnOverlayDrawn(rect.toAndroidRect()))
                 },
                 modifier = Modifier.fillMaxSize()
+            )
+            ScannerBottomNavigation(
+                onHistoryClick = {
+
+                },
+                onScanClick = {
+
+                },
+                onCreateQrClick = {
+                    onAction(ScannerAction.OnCreateQrClick)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 48.dp)
             )
             if (isLoading)
                 LoadingIndicator()
