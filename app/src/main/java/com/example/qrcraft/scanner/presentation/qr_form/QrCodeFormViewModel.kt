@@ -3,6 +3,8 @@ package com.example.qrcraft.scanner.presentation.qr_form
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import com.example.qrcraft.app.navigation.NavigationRoute
 import com.example.qrcraft.scanner.domain.models.BarcodeData
 import com.example.qrcraft.scanner.presentation.models.BarcodeType
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +17,8 @@ class QrCodeFormViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val barcodeType =
-        BarcodeType.valueOf(savedStateHandle.get<String>("barcodeType") ?: BarcodeType.UNKNOWN.name)
+    private val qrCodeFormRoute: NavigationRoute.QrCodeForm = savedStateHandle.toRoute()
+    private val barcodeType = BarcodeType.valueOf(qrCodeFormRoute.barcodeType)
 
     private var _state = MutableStateFlow(QrCodeFormState())
     val state = _state
@@ -115,8 +117,6 @@ class QrCodeFormViewModel(
                         )
                     }
             }
-
-            BarcodeType.UNKNOWN -> {}
         }
     }
 

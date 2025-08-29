@@ -6,6 +6,5 @@ enum class BarcodeType {
     CONTACT,
     PHONE,
     GEO,
-    WIFI,
-    UNKNOWN
+    WIFI
 }

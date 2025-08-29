@@ -87,7 +87,6 @@ fun QrCodeFormScreen(
                     BarcodeType.LINK -> stringResource(id = R.string.link)
                     BarcodeType.WIFI -> stringResource(id = R.string.wifi)
                     BarcodeType.GEO -> stringResource(id = R.string.geo)
-                    BarcodeType.UNKNOWN -> ""
                 },
                 onBackClick = { onAction(QrCodeFormAction.OnBackClick) }
             )
@@ -261,9 +260,6 @@ fun QrCodeFormScreen(
                                     .fillMaxWidth()
                             )
                         }
-
-                        BarcodeType.UNKNOWN -> {}
-
                     }
                     FormButton(
                         enabled = isButtonEnabled,
