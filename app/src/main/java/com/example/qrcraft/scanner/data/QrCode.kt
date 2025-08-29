@@ -16,19 +16,26 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 object QrCode {
-    fun generateQrCodeBitmap(content: String, size: Int = 512): Bitmap {
+    fun generateQrCodeBitmap(content: String, size: Int = 512, borderSize: Int = 20): Bitmap {
         val qrCodeWriter = QRCodeWriter()
-        val hints = mapOf(EncodeHintType.MARGIN to 1) // Add some padding
+        val hints = mapOf(EncodeHintType.MARGIN to 0)
         val bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, size, size, hints)
 
-        val pixels = IntArray(size * size)
+        val finalSize = size + borderSize * 2
+        val pixels = IntArray(finalSize * finalSize) { Color.WHITE }
+
         for (y in 0 until size) {
             for (x in 0 until size) {
-                pixels[y * size + x] = if (bitMatrix[x, y]) Color.BLACK else Color.WHITE
+                if (bitMatrix[x, y]) {
+                    val newX = x + borderSize
+                    val newY = y + borderSize
+                    pixels[newY * finalSize + newX] = Color.BLACK
+                }
             }
         }
-        return createBitmap(size, size).also {
-            it.setPixels(pixels, 0, size, 0, 0, size, size)
+
+        return createBitmap(finalSize, finalSize).also {
+            it.setPixels(pixels, 0, finalSize, 0, 0, finalSize, finalSize)
         }
     }
 

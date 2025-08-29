@@ -21,7 +21,8 @@ fun FormTextField(
     value: String,
     onChange: (String) -> Unit,
     label: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isSingleLine: Boolean = true
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
@@ -39,6 +40,7 @@ fun FormTextField(
             focusedTextColor = MaterialTheme.colorScheme.onSurface,
             unfocusedTextColor = MaterialTheme.colorScheme.onSurface
         ),
+        singleLine = isSingleLine,
         label = {
             if (value.isEmpty() && !isFocused)
                 Text(

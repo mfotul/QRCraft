@@ -15,6 +15,7 @@ fun TextForm(
         value = value,
         onChange = onChange,
         label = stringResource(id = R.string.text),
+        isSingleLine = false,
         modifier = modifier
     )
 }
