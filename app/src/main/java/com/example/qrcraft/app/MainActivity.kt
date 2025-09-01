@@ -16,14 +16,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
+        enableEdgeToEdge()
 
-        enableEdgeToEdge(
-//            statusBarStyle = SystemBarStyle.auto(
-//                Color.TRANSPARENT,
-//                Color.TRANSPARENT,
-//            ),
-//            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
-        )
+        window.isNavigationBarContrastEnforced = false
 
         setContent {
             QRCraftTheme {
