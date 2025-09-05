@@ -35,18 +35,18 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.qrcraft.R
+import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
 import com.example.qrcraft.core.presentation.util.ObserveAsEvents
 import com.example.qrcraft.core.presentation.util.SnackBarController
 import com.example.qrcraft.core.presentation.util.toString
 import com.example.qrcraft.scanner.data.mapper.toAndroidRect
-import com.example.qrcraft.scanner.domain.models.BarcodeData
 import com.example.qrcraft.scanner.domain.models.ErrorResponse
+import com.example.qrcraft.scanner.domain.models.QrCode
 import com.example.qrcraft.scanner.domain.models.ResponseType
 import com.example.qrcraft.scanner.presentation.scanner.components.CameraPermissionDialog
 import com.example.qrcraft.scanner.presentation.scanner.components.CameraPreview
 import com.example.qrcraft.scanner.presentation.scanner.components.ErrorDialog
 import com.example.qrcraft.scanner.presentation.scanner.components.LoadingIndicator
-import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
 import com.example.qrcraft.scanner.presentation.scanner.components.ScannerOverlay
 import com.example.qrcraft.scanner.presentation.scanner.components.ScannerSnackBar
 import com.example.qrcraft.scanner.presentation.util.SetStatusBarIconsColor
@@ -57,9 +57,10 @@ import org.koin.androidx.compose.koinViewModel
 @SuppressLint("SourceLockedOrientationActivity")
 @Composable
 fun ScannerScreenRoot(
-    onScanResult: (BarcodeData) -> Unit,
+    onScanResult: (QrCode) -> Unit,
     onCloseApp: () -> Unit,
     onCreateQRCodeClick: () -> Unit,
+    onScanHistoryClick: () -> Unit,
     viewModel: ScannerViewModel = koinViewModel(),
 ) {
 
@@ -105,7 +106,7 @@ fun ScannerScreenRoot(
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            is ScannerEvent.OnResult -> onScanResult(event.barcodeData)
+            is ScannerEvent.OnResult -> onScanResult(event.qrCode)
         }
     }
 
@@ -114,6 +115,7 @@ fun ScannerScreenRoot(
         onAction = {
             when (it) {
                 ScannerAction.OnCreateQrClick -> onCreateQRCodeClick()
+                ScannerAction.OnHistoryScanClick -> onScanHistoryClick()
                 else -> viewModel.onAction(it)
             }
         },
@@ -202,7 +204,7 @@ fun ScannerScreen(
             )
             ScannerBottomNavigation(
                 onHistoryClick = {
-
+                    onAction(ScannerAction.OnHistoryScanClick)
                 },
                 onScanClick = {
 

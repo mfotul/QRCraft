@@ -1,4 +1,4 @@
-package com.example.qrcraft.scanner.presentation.models
+package com.example.qrcraft.scanner.domain.models
 
 enum class BarcodeType {
     TEXT,

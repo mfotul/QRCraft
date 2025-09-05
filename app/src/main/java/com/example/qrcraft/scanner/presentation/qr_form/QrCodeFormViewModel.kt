@@ -5,16 +5,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.qrcraft.app.navigation.NavigationRoute
-import com.example.qrcraft.scanner.domain.models.BarcodeData
-import com.example.qrcraft.scanner.presentation.models.BarcodeType
+import com.example.qrcraft.scanner.domain.ScannerDataSource
+import com.example.qrcraft.scanner.domain.models.BarcodeType
+import com.example.qrcraft.scanner.domain.models.QrCode
+import com.example.qrcraft.scanner.domain.models.QrCodeData
+import com.example.qrcraft.scanner.domain.models.QrCodeSource
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.time.Instant
 
 
 class QrCodeFormViewModel(
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val scannerDataSource: ScannerDataSource
 ) : ViewModel() {
 
     private val qrCodeFormRoute: NavigationRoute.QrCodeForm = savedStateHandle.toRoute()
@@ -28,13 +36,28 @@ class QrCodeFormViewModel(
             initialValue = QrCodeFormState()
         )
 
+    private var eventChannel = Channel<QrCodeFormEvent>()
+    val events = eventChannel.receiveAsFlow()
 
     fun onAction(action: QrCodeFormAction) {
         when (action) {
-            QrCodeFormAction.OnBackClick, QrCodeFormAction.OnGenerateQrCodeClick -> { /* Your existing handling */
-            }
-
+            QrCodeFormAction.OnBackClick -> { }
+            QrCodeFormAction.OnGenerateQrCodeClick -> generateQrCode()
             is QrCodeFormAction.OnTextFieldChange -> updateTextField(action.field, action.value)
+        }
+    }
+
+    private fun generateQrCode() {
+        viewModelScope.launch {
+            state.value.qrCodeData?.let { qrCodeData ->
+                val qrCode = QrCode(
+                    qrCodeData = qrCodeData,
+                    createdAt = Instant.now(),
+                    qrCodeSource = QrCodeSource.CREATED
+                )
+                scannerDataSource.insertQrCode(qrCode)
+                eventChannel.send(QrCodeFormEvent.OnResult(qrCode))
+            }
         }
     }
 
@@ -51,7 +74,7 @@ class QrCodeFormViewModel(
                 if (state.value.text1.isNotBlank())
                     _state.update {
                         it.copy(
-                            barcodeData = BarcodeData.Text(
+                            qrCodeData = QrCodeData.Text(
                                 text = state.value.text1
                             )
                         )
@@ -62,7 +85,7 @@ class QrCodeFormViewModel(
                 if (state.value.text1.isNotBlank())
                     _state.update {
                         it.copy(
-                            barcodeData = BarcodeData.Link(
+                            qrCodeData = QrCodeData.Link(
                                 url = state.value.text1
                             )
                         )
@@ -73,7 +96,7 @@ class QrCodeFormViewModel(
                 if (state.value.text1.isNotBlank() && state.value.text2.isNotBlank() && state.value.text3.isNotBlank())
                     _state.update {
                         it.copy(
-                            barcodeData = BarcodeData.Contact(
+                            qrCodeData = QrCodeData.Contact(
                                 name = state.value.text1,
                                 email = state.value.text2,
                                 phone = state.value.text3
@@ -86,7 +109,7 @@ class QrCodeFormViewModel(
                 if (state.value.text1.isNotBlank())
                     _state.update {
                         it.copy(
-                            barcodeData = BarcodeData.Phone(
+                            qrCodeData = QrCodeData.Phone(
                                 number = state.value.text1
                             )
                         )
@@ -97,7 +120,7 @@ class QrCodeFormViewModel(
                 if (state.value.text1.isNotBlank() && state.value.text2.isNotBlank())
                     _state.update {
                         it.copy(
-                            barcodeData = BarcodeData.Geo(
+                            qrCodeData = QrCodeData.Geo(
                                 latitude = state.value.text1,
                                 longitude = state.value.text2
                             )
@@ -109,10 +132,10 @@ class QrCodeFormViewModel(
                 if (state.value.text1.isNotBlank() && state.value.text2.isNotBlank() && state.value.text3.isNotBlank())
                     _state.update {
                         it.copy(
-                            barcodeData = BarcodeData.Wifi(
+                            qrCodeData = QrCodeData.Wifi(
                                 ssid = state.value.text1,
                                 password = state.value.text2,
-                                type = state.value.text3
+                                encryptionType = state.value.text3
                             )
                         )
                     }

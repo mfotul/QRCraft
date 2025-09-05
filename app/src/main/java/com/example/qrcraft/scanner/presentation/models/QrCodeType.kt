@@ -3,6 +3,7 @@ package com.example.qrcraft.scanner.presentation.models
 
 import androidx.compose.ui.graphics.Color
 import com.example.qrcraft.R
+import com.example.qrcraft.scanner.domain.models.BarcodeType
 import com.example.qrcraft.ui.theme.Contact
 import com.example.qrcraft.ui.theme.ContactBG
 import com.example.qrcraft.ui.theme.Geo
@@ -16,7 +17,7 @@ import com.example.qrcraft.ui.theme.TextBG
 import com.example.qrcraft.ui.theme.WiFi
 import com.example.qrcraft.ui.theme.WiFiBG
 
-enum class QrCodeDescription(
+enum class QrCodeType(
     val icon: Int,
     val text: Int,
     val color: Color,

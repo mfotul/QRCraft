@@ -15,7 +15,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
 
-object QrCode {
+object QrCodeUtil {
     fun generateQrCodeBitmap(content: String, size: Int = 512, borderSize: Int = 20): Bitmap {
         val qrCodeWriter = QRCodeWriter()
         val hints = mapOf(EncodeHintType.MARGIN to 0)

@@ -22,20 +22,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.qrcraft.R
 import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
-import com.example.qrcraft.scanner.presentation.components.QRScannerTopAppBar
+import com.example.qrcraft.scanner.presentation.create_qr.components.QRScannerTopAppBar
 import com.example.qrcraft.scanner.presentation.create_qr.components.QrTypeCard
-import com.example.qrcraft.scanner.presentation.models.BarcodeType
-import com.example.qrcraft.scanner.presentation.models.QrCodeDescription
+import com.example.qrcraft.scanner.domain.models.BarcodeType
+import com.example.qrcraft.scanner.presentation.models.QrCodeType
 import com.example.qrcraft.ui.theme.QRCraftTheme
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun CreateQRCodeScreen(
     onScanClick: () -> Unit,
+    onHistoryClick: () -> Unit,
     onQrTypeClick: (BarcodeType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-//    SetStatusBarIconsColor(darkIcons = true)
     val screenWidth = LocalConfiguration.current.screenWidthDp
 
     Scaffold(
@@ -59,7 +59,7 @@ fun CreateQRCodeScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                items(QrCodeDescription.entries.toList()) { qrCodeType ->
+                items(QrCodeType.entries.toList()) { qrCodeType ->
                     QrTypeCard(
                         qrCodeType = qrCodeType,
                         onClick = { onQrTypeClick(qrCodeType.barcodeType) }
@@ -67,7 +67,7 @@ fun CreateQRCodeScreen(
                 }
             }
             ScannerBottomNavigation(
-                onHistoryClick = {},
+                onHistoryClick = onHistoryClick,
                 onScanClick = onScanClick,
                 onCreateQrClick = { },
                 createQrChosen = true,
@@ -85,6 +85,7 @@ fun CreateQRCodeScreenPreview() {
     QRCraftTheme {
         CreateQRCodeScreen(
             onScanClick = {},
+            onHistoryClick = {},
             onQrTypeClick = {} // Updated preview with new parameter
         )
     }
@@ -96,6 +97,7 @@ fun CreateQRCodeScreenTabletPreview() {
     QRCraftTheme {
         CreateQRCodeScreen(
             onScanClick = {},
+            onHistoryClick = {},
             onQrTypeClick = {} // Updated preview with new parameter
         )
     }

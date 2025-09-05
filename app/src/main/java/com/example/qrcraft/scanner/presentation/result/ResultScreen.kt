@@ -41,9 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.qrcraft.R
-import com.example.qrcraft.scanner.data.QrCode
-import com.example.qrcraft.scanner.domain.models.BarcodeData
-import com.example.qrcraft.scanner.domain.models.toQrCodeGenerator
+import com.example.qrcraft.scanner.data.QrCodeUtil
+import com.example.qrcraft.scanner.domain.models.QrCode
+import com.example.qrcraft.scanner.domain.models.QrCodeData
+import com.example.qrcraft.scanner.domain.models.QrCodeSource
+import com.example.qrcraft.scanner.domain.models.asString
 import com.example.qrcraft.scanner.presentation.result.components.QrCodeCard
 import com.example.qrcraft.scanner.presentation.result.components.ResultButton
 import com.example.qrcraft.scanner.presentation.result.components.ResultTopBar
@@ -52,10 +54,11 @@ import com.example.qrcraft.scanner.presentation.result.components.TypeLabel
 import com.example.qrcraft.scanner.presentation.util.SetStatusBarIconsColor
 import com.example.qrcraft.ui.theme.QRCraftTheme
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 @Composable
 fun ResultScreen(
-    barcodeData: BarcodeData,
+    qrCode: QrCode,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -63,17 +66,17 @@ fun ResultScreen(
     val coroutineScope = rememberCoroutineScope()
     var extraText by remember { mutableStateOf("") }
 
-
     SetStatusBarIconsColor(darkIcons = false)
+
     val qrCodeBitmap by remember {
-        mutableStateOf(QrCode.generateQrCodeBitmap(barcodeData.toQrCodeGenerator()))
+        mutableStateOf(QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()))
     }
     var uriQrCode: Uri? = null
 
-    LaunchedEffect (barcodeData) {
+    LaunchedEffect(qrCode) {
         context.cacheDir.deleteRecursively()
         coroutineScope.launch {
-            uriQrCode = QrCode.saveBitmap(context, qrCodeBitmap)
+            uriQrCode = QrCodeUtil.saveBitmap(context, qrCodeBitmap)
         }
     }
 
@@ -128,8 +131,8 @@ fun ResultScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            when (barcodeData) {
-                                is BarcodeData.Contact -> {
+                            when (val data = qrCode.qrCodeData) {
+                                is QrCodeData.Contact -> {
                                     TypeLabel(
                                         text = stringResource(R.string.contact),
                                     )
@@ -137,47 +140,47 @@ fun ResultScreen(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        TextValue(text = barcodeData.name)
-                                        TextValue(text = barcodeData.email)
-                                        TextValue(text = barcodeData.phone)
+                                        TextValue(text = data.name)
+                                        TextValue(text = data.email)
+                                        TextValue(text = data.phone)
                                     }
                                     extraText =
-                                        "${barcodeData.name}\n${barcodeData.email}\n${barcodeData.phone}"
+                                        "${data.name}\n${data.email}\n${data.phone}"
                                 }
 
-                                is BarcodeData.Geo -> {
+                                is QrCodeData.Geo -> {
                                     TypeLabel(
                                         text = stringResource(R.string.geo),
                                     )
-                                    TextValue(text = barcodeData.latitude + ", " + barcodeData.longitude)
-                                    extraText = "${barcodeData.latitude}, ${barcodeData.longitude}"
+                                    TextValue(text = data.latitude + ", " + data.longitude)
+                                    extraText = "${data.latitude}, ${data.longitude}"
                                 }
 
-                                is BarcodeData.Link -> {
+                                is QrCodeData.Link -> {
                                     TypeLabel(
                                         text = stringResource(R.string.link),
                                     )
-                                    TextValue(text = barcodeData.url, isLink = true)
-                                    extraText = barcodeData.url
+                                    TextValue(text = data.url, isLink = true)
+                                    extraText = data.url
                                 }
 
-                                is BarcodeData.Phone -> {
+                                is QrCodeData.Phone -> {
                                     TypeLabel(
                                         text = stringResource(R.string.phone),
                                     )
-                                    TextValue(text = barcodeData.number)
-                                    extraText = barcodeData.number
+                                    TextValue(text = data.number)
+                                    extraText = data.number
                                 }
 
-                                is BarcodeData.Text -> {
+                                is QrCodeData.Text -> {
                                     TypeLabel(
                                         text = stringResource(R.string.text),
                                     )
-                                    TextValue(text = barcodeData.text)
-                                    extraText = barcodeData.text
+                                    TextValue(text = data.text)
+                                    extraText = data.text
                                 }
 
-                                is BarcodeData.Wifi -> {
+                                is QrCodeData.Wifi -> {
                                     TypeLabel(
                                         text = stringResource(R.string.wifi),
                                     )
@@ -185,24 +188,24 @@ fun ResultScreen(
                                         TextValue(
                                             text = stringResource(
                                                 R.string.ssid,
-                                                barcodeData.ssid
+                                                data.ssid
                                             )
                                         )
                                         TextValue(
                                             text = stringResource(
                                                 R.string.password,
-                                                barcodeData.password
+                                                data.password
                                             )
                                         )
                                         TextValue(
                                             text = stringResource(
                                                 R.string.encryption_type,
-                                                barcodeData.type
+                                                data.encryptionType
                                             )
                                         )
                                     }
                                     extraText =
-                                        "SSID: ${barcodeData.ssid}\nPassword: ${barcodeData.password}\nEncryption: ${barcodeData.type}"
+                                        "SSID: ${data.ssid}\nPassword: ${data.password}\nEncryption: ${data.encryptionType}"
                                 }
                             }
                         }
@@ -260,8 +263,11 @@ fun ResultScreen(
 fun ScannerResultTextPreview() {
     QRCraftTheme {
         ResultScreen(
-            barcodeData = BarcodeData.Text(text = "This is a sample text. This is a very long sample text that should wrap to the next line. Let's make it even longer to ensure it wraps multiple times. We need to be absolutely sure that the text wrapping functionality works as expected in various scenarios and on different screen sizes. This long text serves as a good test case for this purpose. Adding more words to make it even longer and test the limits of the layout. The quick brown fox jumps over the lazy dog. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
-//            barcodeData = BarcodeData.Text(text = "This is a sample text."),
+            qrCode = QrCode(
+                qrCodeData = QrCodeData.Text(text = "This is a sample text. This is a very long sample text that should wrap to the next line. Let's make it even longer to ensure it wraps multiple times. We need to be absolutely sure that the text wrapping functionality works as expected in various scenarios and on different screen sizes. This long text serves as a good test case for this purpose. Adding more words to make it even longer and test the limits of the layout. The quick brown fox jumps over the lazy dog. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
+                createdAt = Instant.now(),
+                qrCodeSource = QrCodeSource.SCANNED
+            ),
             onBackClick = {}
         )
     }
@@ -272,10 +278,14 @@ fun ScannerResultTextPreview() {
 fun ScannerResultContactPreview() {
     QRCraftTheme {
         ResultScreen(
-            barcodeData = BarcodeData.Contact(
-                name = "John Doe",
-                email = "john.doe@example.com",
-                phone = "123-456-7890"
+            qrCode = QrCode(
+                qrCodeData = QrCodeData.Contact(
+                    name = "John Doe",
+                    email = "john.doe@example.com",
+                    phone = "123-456-7890"
+                ),
+                createdAt = Instant.now(),
+                qrCodeSource = QrCodeSource.SCANNED
             ),
             onBackClick = {}
         )
@@ -287,9 +297,13 @@ fun ScannerResultContactPreview() {
 fun ScannerResultGeoPreview() {
     QRCraftTheme {
         ResultScreen(
-            barcodeData = BarcodeData.Geo(
-                latitude = "37.7749",
-                longitude = "-122.4194",
+            qrCode = QrCode(
+                qrCodeData = QrCodeData.Geo(
+                    latitude = "37.7749",
+                    longitude = "-122.4194"
+                ),
+                createdAt = Instant.now(),
+                qrCodeSource = QrCodeSource.SCANNED
             ),
             onBackClick = {}
         )
@@ -301,7 +315,11 @@ fun ScannerResultGeoPreview() {
 fun ScannerResultLinkPreview() {
     QRCraftTheme {
         ResultScreen(
-            barcodeData = BarcodeData.Link(url = "https://www.example.com"),
+            qrCode = QrCode(
+                qrCodeData = QrCodeData.Link(url = "https://www.example.com"),
+                createdAt = Instant.now(),
+                qrCodeSource = QrCodeSource.SCANNED
+            ),
             onBackClick = {}
         )
     }
@@ -312,7 +330,11 @@ fun ScannerResultLinkPreview() {
 fun ScannerResultPhonePreview() {
     QRCraftTheme {
         ResultScreen(
-            barcodeData = BarcodeData.Phone(number = "987-654-3210"),
+            qrCode = QrCode(
+                qrCodeData = QrCodeData.Phone(number = "987-654-3210"),
+                createdAt = Instant.now(),
+                qrCodeSource = QrCodeSource.SCANNED
+            ),
             onBackClick = {}
         )
     }
@@ -323,10 +345,14 @@ fun ScannerResultPhonePreview() {
 fun ScannerResultWifiPreview() {
     QRCraftTheme {
         ResultScreen(
-            barcodeData = BarcodeData.Wifi(
-                ssid = "MyWifiNetwork",
-                password = "supersecretpassword",
-                type = "WPA"
+            qrCode = QrCode(
+                qrCodeData = QrCodeData.Wifi(
+                    ssid = "MyWifiNetwork",
+                    password = "supersecretpassword",
+                    encryptionType = "WPA"
+                ),
+                createdAt = Instant.now(),
+                qrCodeSource = QrCodeSource.SCANNED
             ),
             onBackClick = {}
         )

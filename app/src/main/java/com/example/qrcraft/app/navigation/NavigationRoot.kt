@@ -4,13 +4,17 @@ import android.app.Activity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.qrcraft.scanner.domain.models.BarcodeData
+import com.example.qrcraft.data.dto.QrCodeDto
+import com.example.qrcraft.data.dto.toDomain
+import com.example.qrcraft.data.dto.toDto
 import com.example.qrcraft.scanner.presentation.create_qr.CreateQRCodeScreen
-import com.example.qrcraft.scanner.presentation.models.BarcodeType
+import com.example.qrcraft.scanner.presentation.history.HistoryScreen
+import com.example.qrcraft.scanner.domain.models.BarcodeType
 import com.example.qrcraft.scanner.presentation.qr_form.QrCodeFormScreenRoot
 import com.example.qrcraft.scanner.presentation.result.ResultScreen
 import com.example.qrcraft.scanner.presentation.scanner.ScannerScreenRoot
@@ -29,24 +33,35 @@ fun NavigationRoot(
     ) {
         composable<NavigationRoute.Scanner> {
             ScannerScreenRoot(
-                onScanResult = { barcodeData ->
-                    val jsonBarcode = Json.encodeToString(barcodeData)
-                    navController.navigate(NavigationRoute.Result(jsonBarcode))
+                onScanResult = { qrCode ->
+                    val jsonQrCode = Json.encodeToString(qrCode.toDto())
+                    navController.navigate(NavigationRoute.Result(jsonQrCode))
                 },
                 onCloseApp = {
                     ActivityCompat.finishAffinity(activity)
                     exitProcess(0)
                 },
                 onCreateQRCodeClick = {
-                    navController.navigate(NavigationRoute.CreateQRCode)
+                    navController.navigate(NavigationRoute.CreateQRCode) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onScanHistoryClick = {
+                    navController.navigate(NavigationRoute.History) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }
         composable<NavigationRoute.Result> { backStackEntry ->
             val resultRoute: NavigationRoute.Result = backStackEntry.toRoute()
-            val barcodeData = Json.decodeFromString<BarcodeData>(resultRoute.barcode)
+            val qrCode = Json.decodeFromString<QrCodeDto>(resultRoute.qrCode).toDomain()
             ResultScreen(
-                barcodeData = barcodeData,
+                qrCode = qrCode,
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -55,7 +70,18 @@ fun NavigationRoot(
         composable<NavigationRoute.CreateQRCode> {
             CreateQRCodeScreen(
                 onScanClick = {
-                    navController.popBackStack()
+                    navController.navigate(NavigationRoute.Scanner) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onHistoryClick = {
+                    navController.navigate(NavigationRoute.History) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
                 },
                 onQrTypeClick = { barcodeType ->
                     navController.navigate(NavigationRoute.QrCodeForm(barcodeType.name))
@@ -71,9 +97,27 @@ fun NavigationRoot(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onGenerateQrCodeClick = { barcodeData ->
-                    val jsonBarcode = Json.encodeToString(barcodeData)
-                    navController.navigate(NavigationRoute.Result(jsonBarcode))
+                onGenerateQrCodeClick = { qrCode ->
+                    val jsonQrCode = Json.encodeToString(qrCode.toDto())
+                    navController.navigate(NavigationRoute.Result(jsonQrCode))
+                }
+            )
+        }
+        composable<NavigationRoute.History> {
+            HistoryScreen(
+                onCreateQRCodeClick = {
+                    navController.navigate(NavigationRoute.CreateQRCode) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
+                },
+                onScanClick = {
+                    navController.navigate(NavigationRoute.Scanner) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            inclusive = true
+                        }
+                    }
                 }
             )
         }

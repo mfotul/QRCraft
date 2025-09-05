@@ -12,6 +12,7 @@ import com.example.qrcraft.core.domain.util.ScanResult
 import com.example.qrcraft.core.presentation.util.SnackBarController
 import com.example.qrcraft.core.presentation.util.SnackBarEvent
 import com.example.qrcraft.scanner.data.ImageAnalysis
+import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.domain.models.ErrorResponse
 import com.example.qrcraft.scanner.domain.models.ResponseType
 import com.example.qrcraft.scanner.presentation.scanner.ScannerEvent.*
@@ -31,7 +32,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ScannerViewModel() : ViewModel() {
+class ScannerViewModel(
+    private val scannerDataSource: ScannerDataSource
+) : ViewModel() {
     private var _state = MutableStateFlow(ScannerState())
     val state = _state
         .stateIn(
@@ -139,7 +142,8 @@ class ScannerViewModel() : ViewModel() {
                                 isLoading = false
                             )
                         }
-                        eventChannel.send(OnResult(scanResult.barcodeData))
+                        scannerDataSource.insertQrCode(scanResult.qrCode)
+                        eventChannel.send(OnResult(scanResult.qrCode))
                         scanningJob?.cancel()
                     }
 

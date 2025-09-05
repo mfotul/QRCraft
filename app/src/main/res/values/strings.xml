@@ -34,4 +34,7 @@
     <string name="encryption_type_label">Encryption Type</string>
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
+    <string name="scanned">Scanned</string>
+    <string name="generated">Generated</string>
+    <string name="scan_history">Scan History</string>
 </resources>

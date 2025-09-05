@@ -7,8 +7,9 @@ import androidx.camera.mlkit.vision.MlKitAnalyzer
 import androidx.camera.view.LifecycleCameraController
 import androidx.core.content.ContextCompat
 import com.example.qrcraft.core.domain.util.ScanResult
-import com.example.qrcraft.scanner.data.mapper.toBarcodeData
-import com.example.qrcraft.scanner.domain.models.BarcodeData
+import com.example.qrcraft.scanner.data.mapper.toQrCode
+import com.example.qrcraft.scanner.domain.models.QrCode
+import com.example.qrcraft.scanner.domain.models.QrCodeSource
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import kotlinx.coroutines.channels.awaitClose
@@ -34,7 +35,7 @@ object ImageAnalysis {
                 { result ->
                     val barcodeResults = result.getValue(barcodeScanner)
                     if (barcodeResults != null) {
-                        if (barcodeResults.size > 0)
+                        if (barcodeResults.isNotEmpty())
                             trySend(ScanResult.StartDetection)
                         else
                             trySend(ScanResult.NothingDetected)
@@ -62,9 +63,9 @@ object ImageAnalysis {
         }
     }
 
-    private fun extractBarcodeData(barcode: Barcode): BarcodeData? {
+    private fun extractBarcodeData(barcode: Barcode): QrCode? {
         return if (barcode.format == Barcode.FORMAT_QR_CODE) {
-            barcode.toBarcodeData()
+            barcode.toQrCode(qrCodeSource = QrCodeSource.SCANNED)
         } else
             null
     }

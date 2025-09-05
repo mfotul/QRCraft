@@ -1,7 +1,6 @@
 package com.example.qrcraft.scanner.presentation.scanner
 
 import android.graphics.Rect
-import com.example.qrcraft.scanner.domain.models.BarcodeData
 
 
 data class ScannerState(

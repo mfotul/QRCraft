@@ -26,9 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.qrcraft.R
-import com.example.qrcraft.scanner.domain.models.BarcodeData
-import com.example.qrcraft.scanner.presentation.components.QRScannerTopAppBar
-import com.example.qrcraft.scanner.presentation.models.BarcodeType
+import com.example.qrcraft.core.presentation.util.ObserveAsEvents
+import com.example.qrcraft.scanner.domain.models.BarcodeType
+import com.example.qrcraft.scanner.domain.models.QrCode
+import com.example.qrcraft.scanner.presentation.create_qr.components.QRScannerTopAppBar
 import com.example.qrcraft.scanner.presentation.qr_form.components.ContactForm
 import com.example.qrcraft.scanner.presentation.qr_form.components.FormButton
 import com.example.qrcraft.scanner.presentation.qr_form.components.GeoForm
@@ -43,21 +44,28 @@ import org.koin.compose.viewmodel.koinViewModel
 fun QrCodeFormScreenRoot(
     barcodeType: BarcodeType,
     onBackClick: () -> Unit,
-    onGenerateQrCodeClick: (BarcodeData) -> Unit,
+    onGenerateQrCodeClick: (QrCode) -> Unit,
     viewModel: QrCodeFormViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    ObserveAsEvents(viewModel.events) { qrCodeFormEvent ->
+        when(qrCodeFormEvent) {
+            is QrCodeFormEvent.OnResult -> {
+                onGenerateQrCodeClick(qrCodeFormEvent.qrCode)
+            }
+        }
+    }
+
     QrCodeFormScreen(
         barcodeType = barcodeType,
-        isButtonEnabled = state.barcodeData != null,
+        isButtonEnabled = state.qrCodeData != null,
         text1 = state.text1,
         text2 = state.text2,
         text3 = state.text3,
         onAction = {
             when (it) {
                 QrCodeFormAction.OnBackClick -> onBackClick()
-                QrCodeFormAction.OnGenerateQrCodeClick -> onGenerateQrCodeClick(state.barcodeData!!)
                 else -> viewModel.onAction(it)
             }
         },
@@ -74,9 +82,6 @@ fun QrCodeFormScreen(
     onAction: (QrCodeFormAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-//    SetStatusBarIconsColor(darkIcons = true)
-
     Scaffold(
         topBar = {
             QRScannerTopAppBar(
@@ -100,7 +105,6 @@ fun QrCodeFormScreen(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-
                 .verticalScroll(rememberScrollState())
                 .wrapContentSize(Alignment.TopCenter)
         ) {
