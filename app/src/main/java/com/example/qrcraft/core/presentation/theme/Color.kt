@@ -10,6 +10,7 @@ val SurfaceHigher = Color(0xFFFFFFFF)
 val OnSurface = Color(0xFF273037)
 val OnSurfaceVariant = Color(0xFF505F6A)
 val OnSurfaceVariant2 = Color(0xFF8C99A2)
+val OnSurfaceDisabled = Color(0xFF8C99A2)
 val Overlay = Color(0x80000000)
 val OnOverlay = Color(0xFFFFFFFF)
 val Link = Color(0xFF373F05)
@@ -35,6 +36,8 @@ val ColorScheme.primary30: Color
     get() = Primary30
 val ColorScheme.onSurfaceVariant2: Color
     get() = OnSurfaceVariant2
+val ColorScheme.onSurfaceDisabled: Color
+    get() = OnSurfaceDisabled
 val ColorScheme.link: Color
     get() = Link
 val ColorScheme.linkBG: Color

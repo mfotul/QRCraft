@@ -1,37 +1,42 @@
 package com.example.qrcraft.scanner.presentation.history.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.qrcraft.scanner.domain.models.QrCodeData
-import com.example.qrcraft.scanner.presentation.history.Destination
+import androidx.compose.ui.unit.dp
+import com.example.qrcraft.scanner.presentation.history.HistoryAction
+import com.example.qrcraft.scanner.presentation.models.QrCodeUi
+import com.example.qrcraft.scanner.presentation.preview.PreviewModel.fakeQrCodes
 import com.example.qrcraft.ui.theme.QRCraftTheme
 
 @Composable
 fun HistoryList(
-    barcodeData: List<QrCodeData>,
-    destination: Destination,
+    qrCodes: List<QrCodeUi>,
+    onAction: (HistoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    when (destination) {
-        Destination.SCANNED -> {
-
-        }
-
-        Destination.GENERATED -> {
-
-        }
-    }
     LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         modifier = modifier
     ) {
-        items(items = barcodeData) { barcode ->
+        items(items = qrCodes, key = { qrCodeItem -> qrCodeItem.id }) { qrCodeItem ->
             HistoryCard(
-                barcodeData = barcode,
-                onClick = {},
-                onLongClick = {}
+                qrCode = qrCodeItem,
+                onAction = onAction,
+            )
+        }
+        item {
+            Spacer(
+                modifier = Modifier.windowInsetsBottomHeight(WindowInsets.systemBars)
             )
         }
     }
@@ -41,14 +46,7 @@ fun HistoryList(
 @Preview
 fun HistoryListPreview() {
     QRCraftTheme {
-        val fakeBarcodes = listOf(
-            QrCodeData.Link("https://www.example.com"),
-            QrCodeData.Text( "Hello World"),
-            QrCodeData.Geo("40.7128", "-74.0060"),
-            QrCodeData.Wifi("MyNetwork", "password", "WPA"),
-            QrCodeData.Contact("John Doe", "1234567890", "william.henry.harrison@example-pet-store.com")
-        )
-        HistoryList(barcodeData = fakeBarcodes, destination = Destination.SCANNED)
+        HistoryList(qrCodes = fakeQrCodes, {})
     }
 }
 
@@ -56,13 +54,6 @@ fun HistoryListPreview() {
 @Preview
 fun HistoryListGeneratedPreview() {
     QRCraftTheme {
-        val fakeBarcodes = listOf(
-            QrCodeData.Link("https://www.example.com"),
-            QrCodeData.Text( "Hello World"),
-            QrCodeData.Geo("40.7128", "-74.0060"),
-            QrCodeData.Wifi("MyNetwork", "password", "WPA"),
-            QrCodeData.Contact("John Doe", "1234567890", "william.henry.harrison@example-pet-store.com")
-        )
-        HistoryList(barcodeData = fakeBarcodes, destination = Destination.GENERATED)
+        HistoryList(qrCodes = fakeQrCodes, {})
     }
 }

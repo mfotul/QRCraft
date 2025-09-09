@@ -9,7 +9,7 @@ enum class Destination(
     SCANNED(
         label = UiText.StringResource(R.string.scanned)
     ),
-    GENERATED(
+    CREATED(
         label = UiText.StringResource(R.string.generated)
     )
 }

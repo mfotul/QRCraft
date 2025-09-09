@@ -8,4 +8,5 @@ interface ScannerDataSource {
     suspend fun insertQrCode(qrCode: QrCode)
     suspend fun deleteQrCode(qrCode: QrCode)
     fun getQrCodes(qrCodeSource: QrCodeSource): Flow<List<QrCode>>
+    fun getQrCodeById(id: Int): Flow<QrCode?>
 }

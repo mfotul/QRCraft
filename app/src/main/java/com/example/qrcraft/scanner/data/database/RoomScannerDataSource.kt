@@ -23,4 +23,8 @@ class RoomScannerDataSource(
             qrCodeEntities.map { it.toQrCode() }
         }
     }
+
+    override fun getQrCodeById(id: Int): Flow<QrCode?> {
+        return qrCodeDao.getQrCodeById(id).map { it?.toQrCode() }
+    }
 }

@@ -14,6 +14,9 @@ interface QrCodeDao {
     @Query("SELECT * FROM QrCodeEntity WHERE qr_code_source=(:qrCodeSource)")
     fun getQrCodes(qrCodeSource: String): Flow<List<QrCodeEntity>>
 
+    @Query("SELECT * FROM QrCodeEntity WHERE id=(:id)")
+    fun getQrCodeById(id: Int): Flow<QrCodeEntity?>
+
     @Delete
     suspend fun deleteQrCode(qrCodeEntity: QrCodeEntity)
 }

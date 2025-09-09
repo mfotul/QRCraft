@@ -12,9 +12,9 @@ import androidx.navigation.toRoute
 import com.example.qrcraft.data.dto.QrCodeDto
 import com.example.qrcraft.data.dto.toDomain
 import com.example.qrcraft.data.dto.toDto
-import com.example.qrcraft.scanner.presentation.create_qr.CreateQRCodeScreen
-import com.example.qrcraft.scanner.presentation.history.HistoryScreen
 import com.example.qrcraft.scanner.domain.models.BarcodeType
+import com.example.qrcraft.scanner.presentation.create_qr.CreateQRCodeScreen
+import com.example.qrcraft.scanner.presentation.history.HistoryScreenRoot
 import com.example.qrcraft.scanner.presentation.qr_form.QrCodeFormScreenRoot
 import com.example.qrcraft.scanner.presentation.result.ResultScreen
 import com.example.qrcraft.scanner.presentation.scanner.ScannerScreenRoot
@@ -104,7 +104,7 @@ fun NavigationRoot(
             )
         }
         composable<NavigationRoute.History> {
-            HistoryScreen(
+            HistoryScreenRoot(
                 onCreateQRCodeClick = {
                     navController.navigate(NavigationRoute.CreateQRCode) {
                         popUpTo(navController.graph.findStartDestination().id) {

@@ -1,10 +1,14 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 
 package com.example.qrcraft.scanner.presentation.history
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -21,17 +25,47 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
-import com.example.qrcraft.scanner.presentation.history.components.HistoryNavHost
+import com.example.qrcraft.scanner.presentation.history.components.HistoryBottomFade
+import com.example.qrcraft.scanner.presentation.history.components.HistoryList
 import com.example.qrcraft.scanner.presentation.history.components.HistoryTopBar
+import com.example.qrcraft.scanner.presentation.preview.PreviewModel.fakeQrCodes
 import com.example.qrcraft.ui.theme.QRCraftTheme
+import org.koin.androidx.compose.koinViewModel
+
+
+@Composable
+fun HistoryScreenRoot(
+    onCreateQRCodeClick: () -> Unit,
+    onScanClick: () -> Unit,
+    onItemClick: (Int) -> Unit,
+    viewModel: HistoryViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    HistoryScreen(
+        state = state,
+        onAction = {
+            when (it) {
+                HistoryAction.OnCreateQrClick -> onCreateQRCodeClick()
+                HistoryAction.OnScanClick -> onScanClick()
+                is HistoryAction.OnItemClick -> onItemClick(it.qrCodeId)
+                else -> viewModel.onAction(it)
+            }
+        }
+    )
+}
 
 @Composable
 fun HistoryScreen(
-    onCreateQRCodeClick: () -> Unit,
-    onScanClick: () -> Unit,
+    state : HistoryState,
+    onAction: (HistoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
@@ -43,14 +77,19 @@ fun HistoryScreen(
             HistoryTopBar()
         },
         containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets.safeDrawing,
         modifier = modifier
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(innerPadding)
                 .fillMaxSize()
+                .padding(
+                    top = innerPadding.calculateTopPadding(),
+                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    bottom = 0.dp
+                )
         ) {
-
             SecondaryTabRow(
                 selectedTabIndex = selectedDestination,
                 indicator = {
@@ -67,6 +106,7 @@ fun HistoryScreen(
                         onClick = {
                             navController.navigate(route = destination.name)
                             selectedDestination = index
+                            onAction(HistoryAction.OnSwitchHistory(destination))
                         },
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         selectedContentColor = MaterialTheme.colorScheme.onSurface,
@@ -76,21 +116,35 @@ fun HistoryScreen(
                     )
                 }
             }
-            HistoryNavHost(
+            NavHost(
                 navController = navController,
-                startDestination = startDestination,
-                modifier = Modifier.padding(
-                    top = TabRowDefaults.ScrollableTabRowEdgeStartPadding,
-                )
+                startDestination = startDestination.name,
+            ) {
+                Destination.entries.forEach { destination ->
+                    composable(destination.name) {
+                        HistoryList(
+                            qrCodes = state.qrCodes,
+                            onAction = onAction,
+                            modifier = Modifier.padding(
+                                top = TabRowDefaults.ScrollableTabRowEdgeStartPadding,
+                            )
+                        )
+                    }
+                }
+            }
+            HistoryBottomFade(
+                modifier = Modifier.align(Alignment.BottomCenter)
             )
             ScannerBottomNavigation(
                 onHistoryClick = {
                 },
-                onScanClick = onScanClick,
-                onCreateQrClick = onCreateQRCodeClick,
+                onScanClick = { onAction(HistoryAction.OnScanClick) },
+                onCreateQrClick = { onAction(HistoryAction.OnCreateQrClick) },
                 historyChosen = true,
                 createQrChosen = false,
-                modifier = Modifier.align(Alignment.BottomCenter)
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 48.dp)
             )
         }
 
@@ -102,9 +156,13 @@ fun HistoryScreen(
 fun HistoryScreenPreview() {
     QRCraftTheme {
         Surface {
+            val fakeState = HistoryState(
+                qrCodes = fakeQrCodes
+            )
+
             HistoryScreen(
-                onCreateQRCodeClick = {},
-                onScanClick = {}
+                state = fakeState,
+                onAction = {}
             )
         }
     }
