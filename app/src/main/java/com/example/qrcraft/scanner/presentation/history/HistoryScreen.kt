@@ -123,7 +123,7 @@ fun HistoryScreen(
                 Destination.entries.forEach { destination ->
                     composable(destination.name) {
                         HistoryList(
-                            qrCodes = state.qrCodes,
+                            qrCodeUis = state.qrCodes,
                             onAction = onAction,
                             modifier = Modifier.padding(
                                 top = TabRowDefaults.ScrollableTabRowEdgeStartPadding,

@@ -28,7 +28,7 @@ import java.util.Locale
 
 @Composable
 fun HistoryCard(
-    qrCode: QrCodeUi,
+    qrCodeUi: QrCodeUi,
     onAction: (HistoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -39,8 +39,8 @@ fun HistoryCard(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { onAction(HistoryAction.OnItemClick(qrCode)) },
-                onLongClick = { onAction(HistoryAction.OnItemLongClick(qrCode)) }
+                onClick = { onAction(HistoryAction.OnItemClick(qrCodeUi.id)) },
+                onLongClick = { onAction(HistoryAction.OnItemLongClick(qrCodeUi)) }
             )
     ) {
         Row(
@@ -48,7 +48,7 @@ fun HistoryCard(
             modifier = Modifier
                 .padding(8.dp)
         ) {
-            when (qrCode.qrCodeData) {
+            when (qrCodeUi.qrCodeData) {
                 is QrCodeData.Contact ->
                     CircleIcon(qrCodeType = QrCodeType.CONTACT)
 
@@ -71,16 +71,16 @@ fun HistoryCard(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = qrCode.label ?: qrCode.qrCodeData.javaClass.simpleName,
+                    text = qrCodeUi.label ?: qrCodeUi.qrCodeData.javaClass.simpleName,
                     style = MaterialTheme.typography.titleSmall.copy(
                         letterSpacing = (-0.01).em
                     )
                 )
-                when (qrCode.qrCodeData) {
+                when (qrCodeUi.qrCodeData) {
                     is QrCodeData.Contact -> {
                         ContactWifiRows(
-                            line1 = qrCode.qrCodeData.name,
-                            line2 = qrCode.qrCodeData.email
+                            line1 = qrCodeUi.qrCodeData.name,
+                            line2 = qrCodeUi.qrCodeData.email
                         )
                     }
 
@@ -89,29 +89,29 @@ fun HistoryCard(
                             text = String.format(
                                 Locale.ENGLISH,
                                 "%s, %s",
-                                qrCode.qrCodeData.latitude, qrCode.qrCodeData.longitude
+                                qrCodeUi.qrCodeData.latitude, qrCodeUi.qrCodeData.longitude
                             )
                         )
                     }
 
                     is QrCodeData.Link -> {
-                        BodyMediumText(text = qrCode.qrCodeData.url)
+                        BodyMediumText(text = qrCodeUi.qrCodeData.url)
                     }
                     is QrCodeData.Phone -> {
-                        BodyMediumText(text = qrCode.qrCodeData.number)
+                        BodyMediumText(text = qrCodeUi.qrCodeData.number)
                     }
                     is QrCodeData.Text -> {
-                        BodyMediumText(text = qrCode.qrCodeData.text)
+                        BodyMediumText(text = qrCodeUi.qrCodeData.text)
                     }
                     is QrCodeData.Wifi -> {
                         ContactWifiRows(
-                            line1 = stringResource(R.string.ssid, qrCode.qrCodeData.ssid),
-                            line2 = stringResource(R.string.password, qrCode.qrCodeData.password)
+                            line1 = stringResource(R.string.ssid, qrCodeUi.qrCodeData.ssid),
+                            line2 = stringResource(R.string.password, qrCodeUi.qrCodeData.password)
                         )
                     }
                 }
                 Text(
-                    text = qrCode.createdAtFormatted,
+                    text = qrCodeUi.createdAtFormatted,
                     style = MaterialTheme.typography.bodySmall.copy(
                         letterSpacing = (-0.01).em
                     ),
@@ -126,7 +126,7 @@ fun HistoryCard(
 @Composable
 fun HistoryCardPreviewContact() {
     HistoryCard(
-        qrCode = fakeQrCodes[4],
+        qrCodeUi = fakeQrCodes[4],
         onAction = {},
     )
 }
@@ -135,7 +135,7 @@ fun HistoryCardPreviewContact() {
 @Composable
 fun HistoryCardPreviewGeo() {
     HistoryCard(
-        qrCode = fakeQrCodes[2],
+        qrCodeUi = fakeQrCodes[2],
         onAction = {},
     )
 }
@@ -144,7 +144,7 @@ fun HistoryCardPreviewGeo() {
 @Composable
 fun HistoryCardPreviewLink() {
     HistoryCard(
-        qrCode = fakeQrCodes[0],
+        qrCodeUi = fakeQrCodes[0],
         onAction = {},
     )
 }
@@ -153,7 +153,7 @@ fun HistoryCardPreviewLink() {
 @Composable
 fun HistoryCardPreviewPhone() {
     HistoryCard(
-        qrCode = fakeQrCodes[5],
+        qrCodeUi = fakeQrCodes[5],
         onAction = {},
     )
 }
@@ -162,7 +162,7 @@ fun HistoryCardPreviewPhone() {
 @Composable
 fun HistoryCardPreviewText() {
     HistoryCard(
-        qrCode = fakeQrCodes[1],
+        qrCodeUi = fakeQrCodes[1],
         onAction = {},
     )
 }
@@ -171,7 +171,7 @@ fun HistoryCardPreviewText() {
 @Composable
 fun HistoryCardPreviewWifi() {
     HistoryCard(
-        qrCode = fakeQrCodes[3],
+        qrCodeUi = fakeQrCodes[3],
         onAction = {},
     )
 }

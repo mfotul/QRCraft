@@ -19,7 +19,7 @@ import com.example.qrcraft.ui.theme.QRCraftTheme
 
 @Composable
 fun HistoryList(
-    qrCodes: List<QrCodeUi>,
+    qrCodeUis: List<QrCodeUi>,
     onAction: (HistoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -28,9 +28,9 @@ fun HistoryList(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         modifier = modifier
     ) {
-        items(items = qrCodes, key = { qrCodeItem -> qrCodeItem.id }) { qrCodeItem ->
+        items(items = qrCodeUis, key = { qrCodeItem -> qrCodeItem.id }) { qrCodeUi ->
             HistoryCard(
-                qrCode = qrCodeItem,
+                qrCodeUi = qrCodeUi,
                 onAction = onAction,
             )
         }
@@ -46,7 +46,7 @@ fun HistoryList(
 @Preview
 fun HistoryListPreview() {
     QRCraftTheme {
-        HistoryList(qrCodes = fakeQrCodes, {})
+        HistoryList(qrCodeUis = fakeQrCodes, {})
     }
 }
 
@@ -54,6 +54,6 @@ fun HistoryListPreview() {
 @Preview
 fun HistoryListGeneratedPreview() {
     QRCraftTheme {
-        HistoryList(qrCodes = fakeQrCodes, {})
+        HistoryList(qrCodeUis = fakeQrCodes, {})
     }
 }

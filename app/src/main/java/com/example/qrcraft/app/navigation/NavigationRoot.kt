@@ -118,6 +118,9 @@ fun NavigationRoot(
                             inclusive = true
                         }
                     }
+                },
+                onItemClick = { qrCodeId ->
+//                    navController.navigate(NavigationRoute.Result(qrCodeId.toString()))
                 }
             )
         }
