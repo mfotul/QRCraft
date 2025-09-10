@@ -41,7 +41,6 @@ import com.example.qrcraft.core.presentation.util.SnackBarController
 import com.example.qrcraft.core.presentation.util.toString
 import com.example.qrcraft.scanner.data.mapper.toAndroidRect
 import com.example.qrcraft.scanner.domain.models.ErrorResponse
-import com.example.qrcraft.scanner.domain.models.QrCode
 import com.example.qrcraft.scanner.domain.models.ResponseType
 import com.example.qrcraft.scanner.presentation.scanner.components.CameraPermissionDialog
 import com.example.qrcraft.scanner.presentation.scanner.components.CameraPreview

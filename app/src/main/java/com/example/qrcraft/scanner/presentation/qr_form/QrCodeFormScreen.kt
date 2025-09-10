@@ -28,7 +28,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.qrcraft.R
 import com.example.qrcraft.core.presentation.util.ObserveAsEvents
 import com.example.qrcraft.scanner.domain.models.BarcodeType
-import com.example.qrcraft.scanner.domain.models.QrCode
 import com.example.qrcraft.scanner.presentation.create_qr.components.QRScannerTopAppBar
 import com.example.qrcraft.scanner.presentation.qr_form.components.ContactForm
 import com.example.qrcraft.scanner.presentation.qr_form.components.FormButton
