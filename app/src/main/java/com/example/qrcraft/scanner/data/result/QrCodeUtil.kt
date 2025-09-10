@@ -1,4 +1,4 @@
-package com.example.qrcraft.scanner.data
+package com.example.qrcraft.scanner.data.result
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -16,7 +16,12 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 object QrCodeUtil {
-    fun generateQrCodeBitmap(content: String, size: Int = 512, borderSize: Int = 20): Bitmap {
+    fun generateQrCodeBitmap(
+        content: String,
+        size: Int = 512,
+        borderSize: Int = 20
+    ): Bitmap {
+
         val qrCodeWriter = QRCodeWriter()
         val hints = mapOf(EncodeHintType.MARGIN to 0)
         val bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, size, size, hints)
@@ -37,6 +42,7 @@ object QrCodeUtil {
         return createBitmap(finalSize, finalSize).also {
             it.setPixels(pixels, 0, finalSize, 0, 0, finalSize, finalSize)
         }
+
     }
 
     suspend fun saveBitmap(context: Context, bitmap: Bitmap): Uri {

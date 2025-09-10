@@ -9,16 +9,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.example.qrcraft.data.dto.QrCodeDto
-import com.example.qrcraft.data.dto.toDomain
-import com.example.qrcraft.data.dto.toDto
 import com.example.qrcraft.scanner.domain.models.BarcodeType
 import com.example.qrcraft.scanner.presentation.create_qr.CreateQRCodeScreen
 import com.example.qrcraft.scanner.presentation.history.HistoryScreenRoot
 import com.example.qrcraft.scanner.presentation.qr_form.QrCodeFormScreenRoot
-import com.example.qrcraft.scanner.presentation.result.ResultScreen
+import com.example.qrcraft.scanner.presentation.result.ResultScreenRoot
 import com.example.qrcraft.scanner.presentation.scanner.ScannerScreenRoot
-import kotlinx.serialization.json.Json
 import kotlin.system.exitProcess
 
 @Composable
@@ -33,9 +29,8 @@ fun NavigationRoot(
     ) {
         composable<NavigationRoute.Scanner> {
             ScannerScreenRoot(
-                onScanResult = { qrCode ->
-                    val jsonQrCode = Json.encodeToString(qrCode.toDto())
-                    navController.navigate(NavigationRoute.Result(jsonQrCode))
+                onScanResult = { qrCodeId ->
+                    navController.navigate(NavigationRoute.Result(qrCodeId))
                 },
                 onCloseApp = {
                     ActivityCompat.finishAffinity(activity)
@@ -58,10 +53,7 @@ fun NavigationRoot(
             )
         }
         composable<NavigationRoute.Result> { backStackEntry ->
-            val resultRoute: NavigationRoute.Result = backStackEntry.toRoute()
-            val qrCode = Json.decodeFromString<QrCodeDto>(resultRoute.qrCode).toDomain()
-            ResultScreen(
-                qrCode = qrCode,
+            ResultScreenRoot(
                 onBackClick = {
                     navController.popBackStack()
                 }
@@ -97,9 +89,8 @@ fun NavigationRoot(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onGenerateQrCodeClick = { qrCode ->
-                    val jsonQrCode = Json.encodeToString(qrCode.toDto())
-                    navController.navigate(NavigationRoute.Result(jsonQrCode))
+                onGenerateQrCodeClick = { qrCodeId ->
+                    navController.navigate(NavigationRoute.Result(qrCodeId))
                 }
             )
         }
@@ -120,7 +111,7 @@ fun NavigationRoot(
                     }
                 },
                 onItemClick = { qrCodeId ->
-//                    navController.navigate(NavigationRoute.Result(qrCodeId.toString()))
+                    navController.navigate(NavigationRoute.Result(qrCodeId))
                 }
             )
         }

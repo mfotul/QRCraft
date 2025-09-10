@@ -44,7 +44,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun QrCodeFormScreenRoot(
     barcodeType: BarcodeType,
     onBackClick: () -> Unit,
-    onGenerateQrCodeClick: (QrCode) -> Unit,
+    onGenerateQrCodeClick: (Long) -> Unit,
     viewModel: QrCodeFormViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -52,7 +52,7 @@ fun QrCodeFormScreenRoot(
     ObserveAsEvents(viewModel.events) { qrCodeFormEvent ->
         when(qrCodeFormEvent) {
             is QrCodeFormEvent.OnResult -> {
-                onGenerateQrCodeClick(qrCodeFormEvent.qrCode)
+                onGenerateQrCodeClick(qrCodeFormEvent.qrCodeId)
             }
         }
     }

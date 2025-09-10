@@ -37,4 +37,6 @@
     <string name="scanned">Scanned</string>
     <string name="generated">Generated</string>
     <string name="scan_history">Scan History</string>
+    <string name="history_is_empty">History is empty</string>
+    <string name="delete">Delete</string>
 </resources>

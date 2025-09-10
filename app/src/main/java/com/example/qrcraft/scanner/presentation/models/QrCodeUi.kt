@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 data class QrCodeUi(
-    val id: Int,
+    val id: Long,
     val qrCodeData: QrCodeData,
     val createdAt: Instant,
     val label: String? = null,

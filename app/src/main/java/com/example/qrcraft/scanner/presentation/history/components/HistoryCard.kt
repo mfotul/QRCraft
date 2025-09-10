@@ -39,7 +39,7 @@ fun HistoryCard(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { onAction(HistoryAction.OnItemClick(qrCodeUi.id)) },
+                onClick = { onAction(HistoryAction.OnItemClick(qrCodeUi)) },
                 onLongClick = { onAction(HistoryAction.OnItemLongClick(qrCodeUi)) }
             )
     ) {

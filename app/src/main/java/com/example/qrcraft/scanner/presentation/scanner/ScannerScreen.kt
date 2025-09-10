@@ -57,7 +57,7 @@ import org.koin.androidx.compose.koinViewModel
 @SuppressLint("SourceLockedOrientationActivity")
 @Composable
 fun ScannerScreenRoot(
-    onScanResult: (QrCode) -> Unit,
+    onScanResult: (Long) -> Unit,
     onCloseApp: () -> Unit,
     onCreateQRCodeClick: () -> Unit,
     onScanHistoryClick: () -> Unit,
@@ -106,7 +106,7 @@ fun ScannerScreenRoot(
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            is ScannerEvent.OnResult -> onScanResult(event.qrCode)
+            is ScannerEvent.OnResult -> onScanResult(event.qrCodeId)
         }
     }
 

@@ -5,8 +5,9 @@ import com.example.qrcraft.scanner.domain.models.QrCodeSource
 import kotlinx.coroutines.flow.Flow
 
 interface ScannerDataSource {
-    suspend fun insertQrCode(qrCode: QrCode)
-    suspend fun deleteQrCode(qrCode: QrCode)
+    suspend fun insertQrCode(qrCode: QrCode): Long
+    suspend fun deleteQrCodeById(id: Long)
+    suspend fun updateQrCode(qrCode: QrCode)
     fun getQrCodes(qrCodeSource: QrCodeSource): Flow<List<QrCode>>
-    fun getQrCodeById(id: Int): Flow<QrCode?>
+    fun getQrCodeById(id: Long): Flow<QrCode?>
 }

@@ -1,4 +1,4 @@
-package com.example.qrcraft.scanner.presentation.history
+package com.example.qrcraft.scanner.presentation.history.models
 
 import com.example.qrcraft.R
 import com.example.qrcraft.core.presentation.util.UiText

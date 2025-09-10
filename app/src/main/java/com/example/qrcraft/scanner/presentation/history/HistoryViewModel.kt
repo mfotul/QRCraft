@@ -2,10 +2,16 @@
 
 package com.example.qrcraft.scanner.presentation.history
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.qrcraft.scanner.data.result.QrCodeUtil
 import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.domain.models.QrCodeSource
+import com.example.qrcraft.scanner.domain.models.asString
+import com.example.qrcraft.scanner.presentation.history.models.Destination
+import com.example.qrcraft.scanner.presentation.models.QrCodeUi
+import com.example.qrcraft.scanner.presentation.util.shareQrCodeWithBitmap
 import com.example.qrcraft.scanner.presentation.util.toQrCodeUi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class HistoryViewModel(
     private val scannerDataSource: ScannerDataSource
@@ -43,14 +50,49 @@ class HistoryViewModel(
 
     fun onAction(action: HistoryAction) {
         when (action) {
-            HistoryAction.OnCreateQrClick, HistoryAction.OnScanClick -> {}
-            is HistoryAction.OnItemClick -> {}
-            is HistoryAction.OnItemLongClick -> {}
+            is HistoryAction.OnItemClick, HistoryAction.OnCreateQrClick, HistoryAction.OnScanClick -> {}
+            is HistoryAction.OnItemLongClick -> showBottomSheet(isShown = true, qrCode = action.qrCodeUi)
             is HistoryAction.OnSwitchHistory -> switchHistory(action.destination)
+            HistoryAction.OnDismissBottomSheet -> showBottomSheet(isShown = false, qrCode = null)
+            HistoryAction.OnDeleteClick -> deleteQrCode()
+            is HistoryAction.OnShareClick -> shareQrCode(action.context)
         }
     }
 
+    private fun shareQrCode(context: Context) {
+        viewModelScope.launch {
+            state.value.selectedQrCode?.let { qrCodeUi ->
+                val qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCodeUi.qrCodeData.asString())
+                shareQrCodeWithBitmap(
+                    context = context,
+                    qrCodeData = qrCodeUi.qrCodeData,
+                    qrCodeBitmap = qrCodeBitmap
+                )
+                showBottomSheet(isShown = false, qrCode = null)
+            }
+        }
+    }
+
+    private fun deleteQrCode() {
+        viewModelScope.launch {
+            state.value.selectedQrCode?.let { qrCodeUi ->
+                scannerDataSource.deleteQrCodeById(qrCodeUi.id)
+            }
+            showBottomSheet(isShown = false, qrCode = null)
+        }
+    }
+
+    private fun showBottomSheet(isShown: Boolean, qrCode: QrCodeUi?) {
+        _state.value = _state.value.copy(
+            showBottomSheet = isShown,
+            selectedQrCode = qrCode
+        )
+    }
+
     private fun switchHistory(destination: Destination) {
+        _state.value = _state.value.copy(
+            destination = destination
+        )
         historyTab.value = when (destination) {
             Destination.SCANNED -> QrCodeSource.SCANNED
             Destination.CREATED -> QrCodeSource.CREATED

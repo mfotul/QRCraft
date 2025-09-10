@@ -55,8 +55,8 @@ class QrCodeFormViewModel(
                     createdAt = Instant.now(),
                     qrCodeSource = QrCodeSource.CREATED
                 )
-                scannerDataSource.insertQrCode(qrCode)
-                eventChannel.send(QrCodeFormEvent.OnResult(qrCode))
+                val qrCodeId = scannerDataSource.insertQrCode(qrCode)
+                eventChannel.send(QrCodeFormEvent.OnResult(qrCodeId))
             }
         }
     }

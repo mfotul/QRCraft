@@ -1,4 +1,4 @@
-package com.example.qrcraft.scanner.data
+package com.example.qrcraft.scanner.data.scanner
 
 import android.content.Context
 import android.graphics.Rect

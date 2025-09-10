@@ -11,7 +11,7 @@ import com.example.qrcraft.core.domain.util.Message
 import com.example.qrcraft.core.domain.util.ScanResult
 import com.example.qrcraft.core.presentation.util.SnackBarController
 import com.example.qrcraft.core.presentation.util.SnackBarEvent
-import com.example.qrcraft.scanner.data.ImageAnalysis
+import com.example.qrcraft.scanner.data.scanner.ImageAnalysis
 import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.domain.models.ErrorResponse
 import com.example.qrcraft.scanner.domain.models.ResponseType
@@ -142,8 +142,8 @@ class ScannerViewModel(
                                 isLoading = false
                             )
                         }
-                        scannerDataSource.insertQrCode(scanResult.qrCode)
-                        eventChannel.send(OnResult(scanResult.qrCode))
+                        val qrCodeId = scannerDataSource.insertQrCode(scanResult.qrCode)
+                        eventChannel.send(OnResult(qrCodeId))
                         scanningJob?.cancel()
                     }
 

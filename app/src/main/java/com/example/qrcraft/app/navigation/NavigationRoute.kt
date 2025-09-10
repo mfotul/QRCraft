@@ -7,7 +7,7 @@ sealed interface NavigationRoute {
     data object Scanner : NavigationRoute
 
     @Serializable
-    data class Result(val qrCode: String) : NavigationRoute
+    data class Result(val qrCodeId: Long) : NavigationRoute
 
     @Serializable
     data object CreateQRCode : NavigationRoute

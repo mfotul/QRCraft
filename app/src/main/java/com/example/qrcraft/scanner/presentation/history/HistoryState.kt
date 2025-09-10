@@ -1,9 +1,13 @@
 package com.example.qrcraft.scanner.presentation.history
 
-import com.example.qrcraft.scanner.domain.models.QrCodeSource
+import androidx.compose.runtime.Stable
+import com.example.qrcraft.scanner.presentation.history.models.Destination
 import com.example.qrcraft.scanner.presentation.models.QrCodeUi
 
+@Stable
 data class HistoryState(
     val qrCodes: List<QrCodeUi> = emptyList(),
-    val qrCodeSource: QrCodeSource = QrCodeSource.SCANNED
+    val selectedQrCode: QrCodeUi? = null,
+    val destination: Destination = Destination.SCANNED,
+    val showBottomSheet: Boolean = false,
 )

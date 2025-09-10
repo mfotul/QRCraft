@@ -1,4 +1,4 @@
-package com.example.qrcraft.data.dto
+package com.example.qrcraft.scanner.data.dto
 
 import com.example.qrcraft.scanner.domain.models.QrCodeData
 import kotlinx.serialization.Serializable

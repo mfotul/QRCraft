@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity
 data class QrCodeEntity(
     @PrimaryKey(autoGenerate = true)
-    val id : Int = 0,
+    val id : Long = 0,
     @ColumnInfo(name = "qr_code_data")
     val qrCodeData : String,
     @ColumnInfo(name = "created_at")

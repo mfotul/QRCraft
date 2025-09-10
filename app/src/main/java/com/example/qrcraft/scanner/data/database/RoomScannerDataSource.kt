@@ -10,12 +10,16 @@ import kotlinx.coroutines.flow.map
 class RoomScannerDataSource(
     private val qrCodeDao: QrCodeDao
 ) : ScannerDataSource {
-    override suspend fun insertQrCode(qrCode: QrCode) {
-        qrCodeDao.insertQrCode(qrCode.toQrCodeEntity())
+    override suspend fun insertQrCode(qrCode: QrCode): Long {
+        return qrCodeDao.insertQrCode(qrCode.toQrCodeEntity())
     }
 
-    override suspend fun deleteQrCode(qrCode: QrCode) {
-        qrCodeDao.deleteQrCode(qrCode.toQrCodeEntity())
+    override suspend fun deleteQrCodeById(id: Long) {
+        qrCodeDao.deleteQrCodeById(id)
+    }
+
+    override suspend fun updateQrCode(qrCode: QrCode) {
+        qrCodeDao.updateQrCode(qrCode.toQrCodeEntity())
     }
 
     override fun getQrCodes(qrCodeSource: QrCodeSource): Flow<List<QrCode>> {
@@ -24,7 +28,7 @@ class RoomScannerDataSource(
         }
     }
 
-    override fun getQrCodeById(id: Int): Flow<QrCode?> {
+    override fun getQrCodeById(id: Long): Flow<QrCode?> {
         return qrCodeDao.getQrCodeById(id).map { it?.toQrCode() }
     }
 }

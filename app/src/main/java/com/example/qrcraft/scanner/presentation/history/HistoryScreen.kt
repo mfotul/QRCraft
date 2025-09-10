@@ -19,22 +19,26 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.qrcraft.R
 import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
 import com.example.qrcraft.scanner.presentation.history.components.HistoryBottomFade
+import com.example.qrcraft.scanner.presentation.history.components.HistoryBottomSheet
 import com.example.qrcraft.scanner.presentation.history.components.HistoryList
 import com.example.qrcraft.scanner.presentation.history.components.HistoryTopBar
+import com.example.qrcraft.scanner.presentation.history.models.Destination
+import com.example.qrcraft.scanner.presentation.models.QrCodeUi
 import com.example.qrcraft.scanner.presentation.preview.PreviewModel.fakeQrCodes
 import com.example.qrcraft.ui.theme.QRCraftTheme
 import org.koin.androidx.compose.koinViewModel
@@ -44,18 +48,20 @@ import org.koin.androidx.compose.koinViewModel
 fun HistoryScreenRoot(
     onCreateQRCodeClick: () -> Unit,
     onScanClick: () -> Unit,
-    onItemClick: (Int) -> Unit,
+    onItemClick: (Long) -> Unit,
     viewModel: HistoryViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     HistoryScreen(
-        state = state,
+        qrCodeUis = state.qrCodes,
+        destination = state.destination,
+        showBottomSheet = state.showBottomSheet,
         onAction = {
             when (it) {
                 HistoryAction.OnCreateQrClick -> onCreateQRCodeClick()
                 HistoryAction.OnScanClick -> onScanClick()
-                is HistoryAction.OnItemClick -> onItemClick(it.qrCodeId)
+                is HistoryAction.OnItemClick -> onItemClick(it.qrCodeUi.id)
                 else -> viewModel.onAction(it)
             }
         }
@@ -64,13 +70,15 @@ fun HistoryScreenRoot(
 
 @Composable
 fun HistoryScreen(
-    state : HistoryState,
+    qrCodeUis: List<QrCodeUi>,
+    destination: Destination,
+    showBottomSheet: Boolean,
     onAction: (HistoryAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
-    val startDestination = Destination.SCANNED
-    var selectedDestination by remember { mutableIntStateOf(Destination.SCANNED.ordinal) }
+    val startDestination = destination
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -91,27 +99,31 @@ fun HistoryScreen(
                 )
         ) {
             SecondaryTabRow(
-                selectedTabIndex = selectedDestination,
+                selectedTabIndex = destination.ordinal,
                 indicator = {
                     TabRowDefaults.SecondaryIndicator(
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.tabIndicatorOffset(selectedTabIndex = selectedDestination)
+                        modifier = Modifier.tabIndicatorOffset(selectedTabIndex = destination.ordinal)
                     )
                 },
                 containerColor = MaterialTheme.colorScheme.surface,
             ) {
                 Destination.entries.forEachIndexed { index, destination ->
                     Tab(
-                        selected = selectedDestination == index,
+                        selected = destination.ordinal == index,
                         onClick = {
                             navController.navigate(route = destination.name)
-                            selectedDestination = index
                             onAction(HistoryAction.OnSwitchHistory(destination))
                         },
                         unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         selectedContentColor = MaterialTheme.colorScheme.onSurface,
                         text = {
-                            Text(text = destination.label.asString())
+                            Text(
+                                text = destination.label.asString(),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    letterSpacing = (-0.01).em
+                                )
+                            )
                         },
                     )
                 }
@@ -123,7 +135,7 @@ fun HistoryScreen(
                 Destination.entries.forEach { destination ->
                     composable(destination.name) {
                         HistoryList(
-                            qrCodeUis = state.qrCodes,
+                            qrCodeUis = qrCodeUis,
                             onAction = onAction,
                             modifier = Modifier.padding(
                                 top = TabRowDefaults.ScrollableTabRowEdgeStartPadding,
@@ -131,6 +143,15 @@ fun HistoryScreen(
                         )
                     }
                 }
+            }
+            if (qrCodeUis.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.history_is_empty),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        letterSpacing = (-0.01).em
+                    ),
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
             HistoryBottomFade(
                 modifier = Modifier.align(Alignment.BottomCenter)
@@ -146,6 +167,13 @@ fun HistoryScreen(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 48.dp)
             )
+            if (showBottomSheet) {
+                HistoryBottomSheet(
+                    onDismissRequest = { onAction(HistoryAction.OnDismissBottomSheet) },
+                    onShareClick = { onAction(HistoryAction.OnShareClick(context)) },
+                    onDeleteClick = { onAction(HistoryAction.OnDeleteClick) }
+                )
+            }
         }
 
     }
@@ -157,11 +185,14 @@ fun HistoryScreenPreview() {
     QRCraftTheme {
         Surface {
             val fakeState = HistoryState(
-                qrCodes = fakeQrCodes
+                qrCodes = fakeQrCodes,
+                showBottomSheet = false
             )
 
             HistoryScreen(
-                state = fakeState,
+                qrCodeUis = fakeState.qrCodes,
+                destination = fakeState.destination,
+                showBottomSheet = fakeState.showBottomSheet,
                 onAction = {}
             )
         }
