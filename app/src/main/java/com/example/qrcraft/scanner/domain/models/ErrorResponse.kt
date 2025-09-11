@@ -1,9 +1,9 @@
 package com.example.qrcraft.scanner.domain.models
 
-import com.example.qrcraft.core.domain.util.Message
+import com.example.qrcraft.core.presentation.util.UiText
 
 data class ErrorResponse(
-    val message: Message,
+    val uiText: UiText,
     val type: ResponseType
 )
 

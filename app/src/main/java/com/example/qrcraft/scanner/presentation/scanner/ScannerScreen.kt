@@ -38,7 +38,6 @@ import com.example.qrcraft.R
 import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
 import com.example.qrcraft.core.presentation.util.ObserveAsEvents
 import com.example.qrcraft.core.presentation.util.SnackBarController
-import com.example.qrcraft.core.presentation.util.toString
 import com.example.qrcraft.scanner.data.mapper.toAndroidRect
 import com.example.qrcraft.scanner.domain.models.ErrorResponse
 import com.example.qrcraft.scanner.domain.models.ResponseType
@@ -166,7 +165,7 @@ fun ScannerScreen(
 
                         ResponseType.SNACKBAR -> {
                             snackbarHostState.showSnackbar(
-                                message = event.message.message.toString(context),
+                                message = event.message.uiText.asString(context),
                                 duration = SnackbarDuration.Short
                             )
                         }

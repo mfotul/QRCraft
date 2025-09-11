@@ -1,5 +1,6 @@
 package com.example.qrcraft.core.presentation.util
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -67,6 +68,24 @@ sealed interface UiText {
                      is Combined -> throw IllegalArgumentException("Can't nest combined UiTexts.")
                         is Dynamic -> uiText.value
                         is StringResource -> stringResource(uiText.resId, *uiText.args)
+
+                    }
+                }
+                String.format(format, *string.toTypedArray())
+            }
+        }
+    }
+
+    fun asString(context: Context): String {
+        return when (this) {
+            is Dynamic -> value
+            is StringResource -> context.getString(resId, *args)
+            is Combined -> {
+                val string = uiTexts.map { uiText ->
+                    when(uiText) {
+                        is Combined -> throw IllegalArgumentException("Can't nest combined UiTexts.")
+                        is Dynamic -> uiText.value
+                        is StringResource -> context.getString(uiText.resId, *uiText.args)
 
                     }
                 }

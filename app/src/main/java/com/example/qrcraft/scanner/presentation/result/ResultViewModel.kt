@@ -3,6 +3,7 @@
 package com.example.qrcraft.scanner.presentation.result
 
 import android.content.Context
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,8 +12,7 @@ import com.example.qrcraft.app.navigation.NavigationRoute
 import com.example.qrcraft.scanner.data.result.QrCodeUtil
 import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.domain.models.asString
-import com.example.qrcraft.scanner.presentation.util.copyQrCode
-import com.example.qrcraft.scanner.presentation.util.shareQrCodeWithBitmap
+import com.example.qrcraft.scanner.presentation.util.ShareCopyQrCode
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,7 +59,7 @@ class ResultViewModel(
                         qrCode = qrCode,
                         qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
                     ),
-                    label = qrCode.label,
+                    label = state.value.label ?: qrCode.label?.let { TextFieldValue(it) },
                     isEditMode = state.value.isEditMode
                 )
             }
@@ -75,7 +75,7 @@ class ResultViewModel(
                 state.value.qrCodeUiData?.let { qrCodeUiData ->
                     scannerDataSource.updateQrCode(
                         qrCode = qrCodeUiData.qrCode.copy(
-                            label = label
+                            label = label?.text
                         )
                     )
                 }
@@ -101,11 +101,11 @@ class ResultViewModel(
         }
     }
 
-    private fun updateLabel(label: String) {
-        if (label.length > 32) return
+    private fun updateLabel(label: TextFieldValue) {
+        if (label.text.length > 32) return
         _state.update {
             it.copy(
-                label = label.ifBlank { null },
+                label = if (label.text.isBlank()) null else label,
             )
         }
     }
@@ -113,7 +113,7 @@ class ResultViewModel(
     private fun share(context: Context) {
         viewModelScope.launch {
             state.value.qrCodeUiData?.let { qrCodeUiData ->
-                shareQrCodeWithBitmap(
+                ShareCopyQrCode.shareQrCodeWithBitmap(
                     context = context,
                     qrCodeData = qrCodeUiData.qrCode.qrCodeData,
                     qrCodeBitmap = qrCodeUiData.qrCodeBitmap
@@ -125,7 +125,7 @@ class ResultViewModel(
 
     private fun copy(context: Context) {
         state.value.qrCodeUiData?.let { qrCodeUiData ->
-            copyQrCode(
+            ShareCopyQrCode.copyQrCode(
                 context = context,
                 qrCodeData = qrCodeUiData.qrCode.qrCodeData
             )

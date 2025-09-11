@@ -11,32 +11,43 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun TypeLabel(
-    label: String?,
+    label: TextFieldValue?,
     text: String,
     isEditMode: Boolean,
-    onValueChange: (String) -> Unit,
+    onValueChange: (TextFieldValue) -> Unit,
     onTextClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusRequester = remember { FocusRequester() }
 
+    val textStyle = MaterialTheme.typography.titleMedium.copy(
+        textAlign = TextAlign.Center,
+    )
+
     if (isEditMode) {
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
+            label?.let {
+                onValueChange(
+                    label.copy(
+                        selection = TextRange(it.text.length)
+                    )
+                )
+            }
         }
 
         BasicTextField(
-            value = label ?: "",
+            value = label ?: TextFieldValue(),
             onValueChange = { onValueChange(it) },
             singleLine = true,
-            textStyle = MaterialTheme.typography.titleMedium.copy(
-                textAlign = TextAlign.Center,
-            ),
+            textStyle = textStyle,
             decorationBox = { innerTextField ->
                 if (label == null)
                     Text(
@@ -52,12 +63,11 @@ fun TypeLabel(
                 .fillMaxWidth()
                 .focusRequester(focusRequester)
         )
+
     } else
         Text(
-            text = label ?: text,
-            style = MaterialTheme.typography.titleMedium.copy(
-                textAlign = TextAlign.Center,
-            ),
+            text = label?.text ?: text,
+            style = textStyle,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = modifier
                 .fillMaxWidth()
@@ -71,7 +81,7 @@ fun TypeLabel(
 @Preview(showBackground = true)
 fun TypeLabelPreview() {
     TypeLabel(
-        label = "Test",
+        label = TextFieldValue("Test"),
         text = "Text",
         onValueChange = {},
         onTextClick = {},

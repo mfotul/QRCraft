@@ -11,7 +11,7 @@ import com.example.qrcraft.scanner.domain.models.QrCodeSource
 import com.example.qrcraft.scanner.domain.models.asString
 import com.example.qrcraft.scanner.presentation.history.models.Destination
 import com.example.qrcraft.scanner.presentation.models.QrCodeUi
-import com.example.qrcraft.scanner.presentation.util.shareQrCodeWithBitmap
+import com.example.qrcraft.scanner.presentation.util.ShareCopyQrCode
 import com.example.qrcraft.scanner.presentation.util.toQrCodeUi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +63,7 @@ class HistoryViewModel(
         viewModelScope.launch {
             state.value.selectedQrCode?.let { qrCodeUi ->
                 val qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCodeUi.qrCodeData.asString())
-                shareQrCodeWithBitmap(
+                ShareCopyQrCode.shareQrCodeWithBitmap(
                     context = context,
                     qrCodeData = qrCodeUi.qrCodeData,
                     qrCodeBitmap = qrCodeBitmap

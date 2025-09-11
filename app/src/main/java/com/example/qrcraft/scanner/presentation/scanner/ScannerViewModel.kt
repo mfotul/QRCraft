@@ -7,10 +7,11 @@ import android.graphics.Rect
 import androidx.camera.view.LifecycleCameraController
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qrcraft.core.domain.util.Message
+import com.example.qrcraft.R
 import com.example.qrcraft.core.domain.util.ScanResult
 import com.example.qrcraft.core.presentation.util.SnackBarController
 import com.example.qrcraft.core.presentation.util.SnackBarEvent
+import com.example.qrcraft.core.presentation.util.UiText
 import com.example.qrcraft.scanner.data.scanner.ImageAnalysis
 import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.domain.models.ErrorResponse
@@ -74,7 +75,7 @@ class ScannerViewModel(
             SnackBarController.sendEvent(
                 SnackBarEvent(
                     message = ErrorResponse(
-                        Message.CAMERA_PERMISSION_GRANTED,
+                        UiText.StringResource(R.string.camera_permission_granted),
                         ResponseType.SNACKBAR
                     )
                 )
@@ -121,7 +122,7 @@ class ScannerViewModel(
                         SnackBarController.sendEvent(
                             SnackBarEvent(
                                 message = ErrorResponse(
-                                    Message.NO_QR_CODES_FOUND,
+                                    UiText.StringResource(R.string.no_qr_codes_found),
                                     ResponseType.DIALOG
                                 )
                             )
