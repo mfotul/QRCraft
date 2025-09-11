@@ -15,16 +15,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabPosition
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.constrainHeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -103,7 +107,20 @@ fun HistoryScreen(
                 indicator = {
                     TabRowDefaults.SecondaryIndicator(
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.tabIndicatorOffset(selectedTabIndex = destination.ordinal)
+                        modifier = Modifier
+                            .tabIndicatorLayout { measurable: Measurable,
+                                                  constraints: Constraints,
+                                                  tabPositions: List<TabPosition> ->
+
+                                val start = tabPositions[destination.ordinal].left.toPx().toInt()
+                                layout(constraints.maxWidth , constraints.constrainHeight(4.dp.toPx().toInt())){
+                                    measurable.measure(constraints).place(start, 0)
+                                }
+                            }
+                            .padding(
+                                start = if (destination == Destination.SCANNED) 16.dp else 0.dp,
+                                end = if (destination == Destination.CREATED) 16.dp else 0.dp
+                            )
                     )
                 },
                 containerColor = MaterialTheme.colorScheme.surface,
