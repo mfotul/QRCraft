@@ -11,7 +11,6 @@ import androidx.navigation.toRoute
 import com.example.qrcraft.app.navigation.NavigationRoute
 import com.example.qrcraft.scanner.data.result.QrCodeUtil
 import com.example.qrcraft.scanner.domain.ScannerDataSource
-import com.example.qrcraft.scanner.domain.models.QrCodeData
 import com.example.qrcraft.scanner.domain.models.asString
 import com.example.qrcraft.scanner.presentation.util.ShareCopyQrCode
 import kotlinx.coroutines.FlowPreview
