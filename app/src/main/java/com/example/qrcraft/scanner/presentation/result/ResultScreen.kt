@@ -110,7 +110,8 @@ fun ResultScreen(
             ) {
                 QrCodeCard(
                     bitmap = qrCodeBitmap,
-                    modifier = Modifier.zIndex(1f)
+                    modifier = Modifier
+                        .zIndex(1f)
                 )
                 Card(
                     colors = CardDefaults.cardColors(
@@ -255,9 +256,7 @@ fun ResultScreen(
                     }
                 }
             }
-
         }
-
     }
 }
 
