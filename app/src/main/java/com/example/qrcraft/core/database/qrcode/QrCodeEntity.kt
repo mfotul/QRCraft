@@ -14,5 +14,7 @@ data class QrCodeEntity(
     val createdAt : Long,
     val label : String?,
     @ColumnInfo(name = "qr_code_source")
-    val qrCodeSource : String
+    val qrCodeSource : String,
+    @ColumnInfo(name = "is_favorite")
+    val isFavorite : Boolean
 )

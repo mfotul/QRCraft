@@ -43,7 +43,7 @@ fun ScannerOverlay(
         val containerHeight = localWindowInfo.containerSize.height
         val containerWidth = localWindowInfo.containerSize.width
 
-        val scanSize = containerWidth * 0.9f
+        val scanSize = containerWidth * 0.8f
 
         val centerX = containerWidth / 2
         val centerY = containerHeight / 2

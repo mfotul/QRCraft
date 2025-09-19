@@ -36,7 +36,8 @@ fun Barcode.toQrCode(qrCodeSource: QrCodeSource): QrCode? {
         QrCode(
             qrCodeData = qrCodeData,
             createdAt = Instant.now(),
-            qrCodeSource = qrCodeSource
+            qrCodeSource = qrCodeSource,
+            isFavorite = false
         )
     }
 }

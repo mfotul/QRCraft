@@ -53,7 +53,8 @@ class QrCodeFormViewModel(
                 val qrCode = QrCode(
                     qrCodeData = qrCodeData,
                     createdAt = Instant.now(),
-                    qrCodeSource = QrCodeSource.CREATED
+                    qrCodeSource = QrCodeSource.CREATED,
+                    isFavorite = false
                 )
                 val qrCodeId = scannerDataSource.insertQrCode(qrCode)
                 eventChannel.send(QrCodeFormEvent.OnResult(qrCodeId))

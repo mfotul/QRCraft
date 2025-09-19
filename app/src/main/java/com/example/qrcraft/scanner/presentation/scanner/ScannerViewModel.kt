@@ -2,8 +2,8 @@
 
 package com.example.qrcraft.scanner.presentation.scanner
 
-import android.content.Context
 import android.graphics.Rect
+import android.net.Uri
 import androidx.camera.view.LifecycleCameraController
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,12 +11,12 @@ import com.example.qrcraft.R
 import com.example.qrcraft.core.domain.util.ScanResult
 import com.example.qrcraft.core.presentation.util.SnackBarController
 import com.example.qrcraft.core.presentation.util.SnackBarEvent
-import com.example.qrcraft.core.presentation.util.UiText
-import com.example.qrcraft.scanner.data.scanner.ImageAnalysis
+import com.example.qrcraft.core.presentation.util.UiText.StringResource
+import com.example.qrcraft.scanner.domain.QrCodeAnalyzer
 import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.domain.models.ErrorResponse
 import com.example.qrcraft.scanner.domain.models.ResponseType
-import com.example.qrcraft.scanner.presentation.scanner.ScannerEvent.*
+import com.example.qrcraft.scanner.presentation.scanner.ScannerEvent.OnResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -34,7 +34,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ScannerViewModel(
-    private val scannerDataSource: ScannerDataSource
+    private val scannerDataSource: ScannerDataSource,
+    private val qrCodeAnalyzer: QrCodeAnalyzer
 ) : ViewModel() {
     private var _state = MutableStateFlow(ScannerState())
     val state = _state
@@ -56,9 +57,79 @@ class ScannerViewModel(
             ScannerAction.OnCreateQrClick, ScannerAction.OnHistoryScanClick, ScannerAction.OnScanClick -> {}
             is ScannerAction.OnOverlayDrawn -> overlayDrawn(action.rect)
             is ScannerAction.OnStartScanning -> setupAnalyzer(
-                context = action.context,
                 cameraController = action.cameraController
             )
+
+            is ScannerAction.OnFlashSwitchClick -> flashSwitch(
+                cameraController = action.cameraController,
+                flashEnabled = action.isFlashEnabled
+            )
+
+            ScannerAction.OnImageGalleryClick -> {}
+            is ScannerAction.OnImagePicked -> imageAnalyzes(action.uri)
+            ScannerAction.OnRemoveUri -> removeUri()
+        }
+    }
+
+    private fun removeUri() {
+        _state.update {
+            it.copy(
+                imageUri = null
+            )
+        }
+    }
+
+    private fun imageAnalyzes(uri: Uri?) {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    imageUri = uri,
+                    isLoading = true
+                )
+            }
+            uri?.let { uri ->
+                val scanResult = qrCodeAnalyzer.analyzeFromImage(uri)
+                when (scanResult) {
+                    is ScanResult.Success -> {
+                        val qrCodeId = scannerDataSource.insertQrCode(scanResult.qrCode)
+                        eventChannel.send(OnResult(qrCodeId))
+                        removeUri()
+                    }
+
+                    ScanResult.Error -> {
+                        SnackBarController.sendEvent(
+                            SnackBarEvent(
+                                message = ErrorResponse(
+                                    StringResource(R.string.no_qr_codes_found),
+                                    ResponseType.DIALOG
+                                )
+                            )
+                        )
+                    }
+
+                    ScanResult.StartDetection, ScanResult.NothingDetected -> {}
+                }
+            }
+            _state.update {
+                it.copy(
+                    isLoading = false
+                )
+            }
+        }
+    }
+
+    private fun flashSwitch(
+        cameraController: LifecycleCameraController,
+        flashEnabled: Boolean
+    ) {
+        val hasTorch = cameraController.cameraInfo?.hasFlashUnit()
+        if (hasTorch == true) {
+            cameraController.enableTorch(flashEnabled)
+            _state.update {
+                it.copy(
+                    isFlashEnabled = flashEnabled
+                )
+            }
         }
     }
 
@@ -75,7 +146,7 @@ class ScannerViewModel(
             SnackBarController.sendEvent(
                 SnackBarEvent(
                     message = ErrorResponse(
-                        UiText.StringResource(R.string.camera_permission_granted),
+                        StringResource(R.string.camera_permission_granted),
                         ResponseType.SNACKBAR
                     )
                 )
@@ -101,7 +172,6 @@ class ScannerViewModel(
     }
 
     private fun setupAnalyzer(
-        context: Context,
         cameraController: LifecycleCameraController,
     ) {
         scanningJob?.cancel()
@@ -110,8 +180,7 @@ class ScannerViewModel(
             .distinctUntilChanged()
             .filterNotNull()
             .flatMapLatest { rect ->
-                ImageAnalysis.analyzeBarcode(
-                    context = context,
+                qrCodeAnalyzer.analyzeFromCamera(
                     cameraController = cameraController,
                     overlayRect = rect
                 )
@@ -122,7 +191,7 @@ class ScannerViewModel(
                         SnackBarController.sendEvent(
                             SnackBarEvent(
                                 message = ErrorResponse(
-                                    UiText.StringResource(R.string.no_qr_codes_found),
+                                    StringResource(R.string.no_qr_codes_found),
                                     ResponseType.DIALOG
                                 )
                             )

@@ -1,4 +1,4 @@
-package com.example.qrcraft.scanner.presentation.scanner.components
+package com.example.qrcraft.core.presentation.designsystem.snackbar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +23,7 @@ import com.example.qrcraft.ui.theme.QRCraftTheme
 import com.example.qrcraft.ui.theme.success
 
 @Composable
-fun ScannerSnackBar(
+fun QrCraftSnackbar(
     snackbarData: SnackbarData,
 ) {
     Card(
@@ -60,7 +60,7 @@ fun ScannerSnackBarPreview() {
             override val message: String = "Camera permission granted"
             override val withDismissAction: Boolean = false
         }
-        ScannerSnackBar(
+        QrCraftSnackbar(
             snackbarData = object : SnackbarData {
                 override fun dismiss() {}
                 override fun performAction() {}

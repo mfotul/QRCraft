@@ -12,7 +12,8 @@ data class QrCodeUi(
     val qrCodeData: QrCodeData,
     val createdAt: Instant,
     val label: String? = null,
-    val qrCodeSource: QrCodeSource
+    val qrCodeSource: QrCodeSource,
+    val isFavorite: Boolean
 ) {
     val createdAtFormatted: String = createdAt.asString()
 }

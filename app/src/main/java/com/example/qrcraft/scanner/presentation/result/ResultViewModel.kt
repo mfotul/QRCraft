@@ -8,9 +8,16 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.example.qrcraft.R
 import com.example.qrcraft.app.navigation.NavigationRoute
-import com.example.qrcraft.scanner.data.result.QrCodeUtil
+import com.example.qrcraft.core.presentation.util.SnackBarController
+import com.example.qrcraft.core.presentation.util.SnackBarEvent
+import com.example.qrcraft.core.presentation.util.UiText.StringResource
+import com.example.qrcraft.scanner.data.result.generateQrCodeBitmap
+import com.example.qrcraft.scanner.domain.ImageStorage
 import com.example.qrcraft.scanner.domain.ScannerDataSource
+import com.example.qrcraft.scanner.domain.models.ErrorResponse
+import com.example.qrcraft.scanner.domain.models.ResponseType
 import com.example.qrcraft.scanner.domain.models.asString
 import com.example.qrcraft.scanner.presentation.util.ShareCopyQrCode
 import kotlinx.coroutines.FlowPreview
@@ -28,7 +35,8 @@ import kotlinx.coroutines.launch
 
 class ResultViewModel(
     private val savedStateHandle: SavedStateHandle,
-    private val scannerDataSource: ScannerDataSource
+    private val scannerDataSource: ScannerDataSource,
+    private val imageStorage: ImageStorage
 ) : ViewModel() {
     private var hasLoadedInitialData = false
 
@@ -55,10 +63,13 @@ class ResultViewModel(
         qrCodeFlow.onEach { qrCode ->
             qrCode?.let {
                 _state.value = ResultState(
-                    qrCodeUiData = QrCodeUiData(
-                        qrCode = qrCode,
-                        qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
-                    ),
+                    qrCode = qrCode,
+                    qrCodeTempUri = state.value.qrCodeTempUri
+                        ?: imageStorage.saveTemporary(
+                            bitmap = generateQrCodeBitmap(
+                                content = qrCode.qrCodeData.asString()
+                            )
+                        ),
                     label = state.value.label ?: qrCode.label?.let { TextFieldValue(it) },
                     isEditMode = state.value.isEditMode
                 )
@@ -72,9 +83,9 @@ class ResultViewModel(
             .distinctUntilChanged()
             .debounce(800L)
             .onEach { label ->
-                state.value.qrCodeUiData?.let { qrCodeUiData ->
+                state.value.qrCode?.let { qrCode ->
                     scannerDataSource.updateQrCode(
-                        qrCode = qrCodeUiData.qrCode.copy(
+                        qrCode = qrCode.copy(
                             label = label?.text
                         )
                     )
@@ -90,6 +101,37 @@ class ResultViewModel(
             is ResultAction.OnShareClick -> share(action.context)
             is ResultAction.OnLabelChange -> updateLabel(action.label)
             ResultAction.OnTextClick -> enableEditMode()
+            ResultAction.OnFavoriteClick -> toggleFavorite()
+            ResultAction.OnDownloadClick -> download()
+        }
+    }
+
+    private fun download() {
+        viewModelScope.launch {
+            imageStorage.savePersistent(
+                uri = state.value.qrCodeTempUri!!,
+                fileName = state.value.qrCode?.label ?: state.value.qrCode!!.qrCodeData::class.java.simpleName
+            )
+            SnackBarController.sendEvent(
+                SnackBarEvent(
+                    message = ErrorResponse(
+                        uiText = StringResource(R.string.download_succeeded),
+                        ResponseType.SNACKBAR
+                    )
+                )
+            )
+        }
+    }
+
+    private fun toggleFavorite() {
+        viewModelScope.launch {
+            state.value.qrCode?.let { qrCode ->
+                scannerDataSource.updateQrCode(
+                    qrCode = qrCode.copy(
+                        isFavorite = !qrCode.isFavorite
+                    )
+                )
+            }
         }
     }
 
@@ -112,11 +154,11 @@ class ResultViewModel(
 
     private fun share(context: Context) {
         viewModelScope.launch {
-            state.value.qrCodeUiData?.let { qrCodeUiData ->
+            state.value.qrCode?.let { qrCode ->
                 ShareCopyQrCode.shareQrCodeWithBitmap(
                     context = context,
-                    qrCodeData = qrCodeUiData.qrCode.qrCodeData,
-                    qrCodeBitmap = qrCodeUiData.qrCodeBitmap
+                    qrCodeData = qrCode.qrCodeData,
+                    uri = state.value.qrCodeTempUri!!
                 )
             }
         }
@@ -124,10 +166,10 @@ class ResultViewModel(
 
 
     private fun copy(context: Context) {
-        state.value.qrCodeUiData?.let { qrCodeUiData ->
+        state.value.qrCode?.let { qrCode ->
             ShareCopyQrCode.copyQrCode(
                 context = context,
-                qrCodeData = qrCodeUiData.qrCode.qrCodeData
+                qrCodeData = qrCode.qrCodeData
             )
         }
     }

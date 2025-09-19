@@ -5,14 +5,19 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -30,12 +35,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.example.qrcraft.R
 import com.example.qrcraft.core.presentation.designsystem.navbars.ScannerBottomNavigation
+import com.example.qrcraft.core.presentation.designsystem.snackbar.QrCraftSnackbar
 import com.example.qrcraft.core.presentation.util.ObserveAsEvents
 import com.example.qrcraft.core.presentation.util.SnackBarController
 import com.example.qrcraft.scanner.data.mapper.toAndroidRect
@@ -45,8 +53,9 @@ import com.example.qrcraft.scanner.presentation.scanner.components.CameraPermiss
 import com.example.qrcraft.scanner.presentation.scanner.components.CameraPreview
 import com.example.qrcraft.scanner.presentation.scanner.components.ErrorDialog
 import com.example.qrcraft.scanner.presentation.scanner.components.LoadingIndicator
+import com.example.qrcraft.scanner.presentation.scanner.components.ScannerFlashButton
+import com.example.qrcraft.scanner.presentation.scanner.components.ScannerImageGalleryButton
 import com.example.qrcraft.scanner.presentation.scanner.components.ScannerOverlay
-import com.example.qrcraft.scanner.presentation.scanner.components.ScannerSnackBar
 import com.example.qrcraft.scanner.presentation.util.SetStatusBarIconsColor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -86,6 +95,12 @@ fun ScannerScreenRoot(
     }
     cameraController.bindToLifecycle(lifecycleOwner)
 
+    val pickMedia = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) {
+        viewModel.onAction(ScannerAction.OnImagePicked(it))
+    }
+
     SetStatusBarIconsColor(darkIcons = false)
 
     DisposableEffect(Unit) {
@@ -110,10 +125,18 @@ fun ScannerScreenRoot(
 
     ScannerScreen(
         isLoading = state.isLoading,
+        isFlashEnabled = state.isFlashEnabled,
+        imageUri = state.imageUri,
         onAction = {
             when (it) {
                 ScannerAction.OnCreateQrClick -> onCreateQRCodeClick()
                 ScannerAction.OnHistoryScanClick -> onScanHistoryClick()
+                ScannerAction.OnImageGalleryClick -> pickMedia.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
+
                 else -> viewModel.onAction(it)
             }
         },
@@ -134,6 +157,8 @@ fun ScannerScreenRoot(
 @Composable
 fun ScannerScreen(
     isLoading: Boolean,
+    isFlashEnabled: Boolean,
+    imageUri: Uri?,
     onAction: (ScannerAction) -> Unit,
     cameraController: LifecycleCameraController,
     modifier: Modifier = Modifier
@@ -146,7 +171,6 @@ fun ScannerScreen(
     LaunchedEffect(Unit) {
         onAction(
             ScannerAction.OnStartScanning(
-                context = context,
                 cameraController = cameraController
             )
         )
@@ -161,6 +185,7 @@ fun ScannerScreen(
                             showErrorDialog = true
                             delay(3000)
                             showErrorDialog = false
+                            onAction(ScannerAction.OnRemoveUri)
                         }
 
                         ResponseType.SNACKBAR -> {
@@ -178,28 +203,61 @@ fun ScannerScreen(
     Scaffold(
         snackbarHost = {
             SnackbarHost(snackbarHostState) { data ->
-                ScannerSnackBar(
+                QrCraftSnackbar(
                     snackbarData = data
                 )
             }
         },
+        contentWindowInsets = WindowInsets.safeContent,
         modifier = modifier
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .consumeWindowInsets(innerPadding)
                 .fillMaxSize()
         ) {
-            CameraPreview(
-                controller = cameraController,
-                modifier = Modifier.fillMaxSize()
-            )
-            ScannerOverlay(
-                onOverlayDrawn = { rect ->
-                    onAction(ScannerAction.OnOverlayDrawn(rect.toAndroidRect()))
+            if (imageUri != null) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                CameraPreview(
+                    controller = cameraController,
+                    modifier = Modifier.fillMaxSize()
+                )
+                ScannerOverlay(
+                    onOverlayDrawn = { rect ->
+                        onAction(ScannerAction.OnOverlayDrawn(rect.toAndroidRect()))
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            ScannerFlashButton(
+                isFlashEnabled = isFlashEnabled,
+                onFlashClick = {
+                    onAction(ScannerAction.OnFlashSwitchClick(cameraController, !isFlashEnabled))
                 },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .padding(
+                        top = innerPadding.calculateTopPadding(),
+                        start = innerPadding.calculateStartPadding(LayoutDirection.Ltr) + 24.dp
+                    )
+                    .align(Alignment.TopStart)
             )
+
+            ScannerImageGalleryButton(
+                onClick = {
+                    onAction(ScannerAction.OnImageGalleryClick)
+                },
+                modifier = Modifier
+                    .padding(
+                        top = innerPadding.calculateTopPadding(),
+                        end = innerPadding.calculateEndPadding(LayoutDirection.Ltr) + 24.dp
+                    )
+                    .align(Alignment.TopEnd)
+            )
+
             ScannerBottomNavigation(
                 onHistoryClick = {
                     onAction(ScannerAction.OnHistoryScanClick)
@@ -224,6 +282,7 @@ fun ScannerScreen(
             message = stringResource(R.string.no_qr_codes_found),
             onDismiss = {
                 showErrorDialog = false
+                onAction(ScannerAction.OnRemoveUri)
             }
         )
 }

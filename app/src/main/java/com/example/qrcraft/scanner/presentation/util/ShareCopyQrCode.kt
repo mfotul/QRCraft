@@ -4,19 +4,16 @@ import android.content.ClipData.newPlainText
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import com.example.qrcraft.scanner.data.result.QrCodeUtil
+import android.net.Uri
 import com.example.qrcraft.scanner.domain.models.QrCodeData
 
 object ShareCopyQrCode {
     suspend fun shareQrCodeWithBitmap(
         context: Context,
         qrCodeData: QrCodeData,
-        qrCodeBitmap: Bitmap
+        uri: Uri
     ) {
         val extraText = shareExtraText(qrCodeData)
-        context.cacheDir.deleteRecursively()
-        val uri = QrCodeUtil.saveBitmap(context, qrCodeBitmap)
         val sentIntent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, extraText)

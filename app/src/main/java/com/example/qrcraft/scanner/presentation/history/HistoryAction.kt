@@ -13,5 +13,5 @@ sealed interface HistoryAction {
     data object OnCreateQrClick: HistoryAction
     data object OnDeleteClick: HistoryAction
     data class OnShareClick(val context: Context): HistoryAction
-
+    data class OnFavoriteClick(val qrCodeUi: QrCodeUi): HistoryAction
 }

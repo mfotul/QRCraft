@@ -1,6 +1,10 @@
 package com.example.qrcraft.scanner.di
 
 import com.example.qrcraft.scanner.data.database.RoomScannerDataSource
+import com.example.qrcraft.scanner.data.result.AndroidImageStorage
+import com.example.qrcraft.scanner.data.scanner.AndroidQrCodeAnalyzer
+import com.example.qrcraft.scanner.domain.ImageStorage
+import com.example.qrcraft.scanner.domain.QrCodeAnalyzer
 import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.presentation.history.HistoryViewModel
 import com.example.qrcraft.scanner.presentation.qr_form.QrCodeFormViewModel
@@ -13,6 +17,8 @@ import org.koin.dsl.module
 
 val scannerModule = module {
     singleOf(::RoomScannerDataSource) bind ScannerDataSource::class
+    singleOf(::AndroidQrCodeAnalyzer) bind QrCodeAnalyzer::class
+    singleOf(::AndroidImageStorage) bind ImageStorage::class
 
     viewModelOf(::ScannerViewModel)
     viewModelOf(::QrCodeFormViewModel)

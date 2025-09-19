@@ -35,6 +35,7 @@ fun HistoryList(
             HistoryCard(
                 qrCodeUi = qrCodeUi,
                 onAction = onAction,
+                modifier = Modifier.animateItem()
             )
         }
         item {

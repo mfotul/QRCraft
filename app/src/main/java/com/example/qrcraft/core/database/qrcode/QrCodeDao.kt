@@ -11,7 +11,7 @@ interface QrCodeDao {
     @Insert
     suspend fun insertQrCode(qrCodeEntity: QrCodeEntity): Long
 
-    @Query("SELECT * FROM QrCodeEntity WHERE qr_code_source=(:qrCodeSource)")
+    @Query("SELECT * FROM QrCodeEntity WHERE qr_code_source=(:qrCodeSource) ORDER BY is_favorite DESC, created_at DESC")
     fun getQrCodes(qrCodeSource: String): Flow<List<QrCodeEntity>>
 
     @Query("SELECT * FROM QrCodeEntity WHERE id=(:id)")

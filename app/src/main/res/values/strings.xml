@@ -39,4 +39,10 @@
     <string name="scan_history">Scan History</string>
     <string name="history_is_empty">History is empty</string>
     <string name="delete">Delete</string>
+    <string name="turn_off_flash">Turn off flash</string>
+    <string name="turn_on_flash">Turn on flash</string>
+    <string name="load_image_from_gallery">Load image from gallery</string>
+    <string name="favorite">Favorite switch</string>
+    <string name="download">Save</string>
+    <string name="download_succeeded">Image saved to Downloads</string>
 </resources>

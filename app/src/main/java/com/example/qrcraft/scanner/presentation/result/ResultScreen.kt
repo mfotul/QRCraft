@@ -1,6 +1,5 @@
 package com.example.qrcraft.scanner.presentation.result
 
-import android.graphics.Bitmap
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
@@ -21,8 +20,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,11 +37,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.qrcraft.R
-import com.example.qrcraft.scanner.data.result.QrCodeUtil
+import com.example.qrcraft.core.presentation.designsystem.snackbar.QrCraftSnackbar
+import com.example.qrcraft.core.presentation.util.ObserveAsEvents
+import com.example.qrcraft.core.presentation.util.SnackBarController
+import com.example.qrcraft.scanner.domain.models.ErrorResponse
 import com.example.qrcraft.scanner.domain.models.QrCode
 import com.example.qrcraft.scanner.domain.models.QrCodeData
 import com.example.qrcraft.scanner.domain.models.QrCodeSource
-import com.example.qrcraft.scanner.domain.models.asString
+import com.example.qrcraft.scanner.domain.models.ResponseType
 import com.example.qrcraft.scanner.presentation.result.components.QrCodeCard
 import com.example.qrcraft.scanner.presentation.result.components.ResultButton
 import com.example.qrcraft.scanner.presentation.result.components.ResultTopBar
@@ -45,6 +52,7 @@ import com.example.qrcraft.scanner.presentation.result.components.TextValue
 import com.example.qrcraft.scanner.presentation.result.components.TypeLabel
 import com.example.qrcraft.scanner.presentation.util.SetStatusBarIconsColor
 import com.example.qrcraft.ui.theme.QRCraftTheme
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import java.time.Instant
 
@@ -56,40 +64,69 @@ fun ResultScreenRoot(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    state.qrCodeUiData?.let { qrCodeUiData ->
-        ResultScreen(
-            qrCode = qrCodeUiData.qrCode,
-            qrCodeBitmap = qrCodeUiData.qrCodeBitmap,
-            isEditMode = state.isEditMode,
-            label = state.label,
-            onAction = {
-                when (it) {
-                    is ResultAction.OnBackClick -> onBackClick()
-                    else -> viewModel.onAction(it)
-                }
-            },
-            modifier = modifier
-        )
+    state.qrCode?.let { qrCode ->
+        state.qrCodeTempUri?.let { qrCodeTempUri ->
+            ResultScreen(
+                qrCode = qrCode,
+                isEditMode = state.isEditMode,
+                label = state.label,
+                onAction = {
+                    when (it) {
+                        is ResultAction.OnBackClick -> onBackClick()
+                        else -> viewModel.onAction(it)
+                    }
+                },
+                modifier = modifier
+            )
+        }
     }
 }
 
 @Composable
 fun ResultScreen(
     qrCode: QrCode,
-    qrCodeBitmap: Bitmap,
     isEditMode: Boolean,
     label: TextFieldValue?,
     onAction: (ResultAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
 
     SetStatusBarIconsColor(darkIcons = false)
 
+    ObserveAsEvents(SnackBarController.events, snackbarHostState) { event ->
+        scope.launch {
+            when (event.message) {
+                is ErrorResponse ->
+                    when (event.message.type) {
+                        ResponseType.DIALOG -> {}
+                        ResponseType.SNACKBAR -> {
+                            snackbarHostState.showSnackbar(
+                                message = event.message.uiText.asString(context),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+            }
+        }
+    }
+    
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackbarHostState) { data ->
+                QrCraftSnackbar(
+                    snackbarData = data
+                )
+            }
+        },
         topBar = {
             ResultTopBar(
-                onBackClick = { onAction(ResultAction.OnBackClick) }
+                isFavorite = qrCode.isFavorite,
+                onBackClick = { onAction(ResultAction.OnBackClick) },
+                onFavoriteClick = { onAction(ResultAction.OnFavoriteClick) }
             )
         },
         containerColor = MaterialTheme.colorScheme.onSurface,
@@ -109,7 +146,7 @@ fun ResultScreen(
                     .fillMaxWidth(0.9f)
             ) {
                 QrCodeCard(
-                    bitmap = qrCodeBitmap,
+                    qrCode = qrCode,
                     modifier = Modifier
                         .zIndex(1f)
                 )
@@ -243,13 +280,20 @@ fun ResultScreen(
                             ResultButton(
                                 icon = R.drawable.share_03,
                                 text = R.string.share,
-                                onClick = { onAction(ResultAction.OnShareClick(context)) },
-                                modifier = Modifier.weight(1f)
+                                withText = false,
+                                onClick = { onAction(ResultAction.OnShareClick(context)) }
                             )
                             ResultButton(
                                 icon = R.drawable.copy_01,
                                 text = R.string.copy,
-                                onClick = { onAction(ResultAction.OnCopyClick(context)) },
+                                withText = false,
+                                onClick = { onAction(ResultAction.OnCopyClick(context)) }
+                            )
+                            ResultButton(
+                                icon = R.drawable.download_02,
+                                text = R.string.download,
+                                withText = true,
+                                onClick = { onAction(ResultAction.OnDownloadClick) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -269,11 +313,11 @@ fun ScannerResultTextPreview() {
             label = "Long Text",
             qrCodeData = QrCodeData.Text(text = "This is a sample text. This is a very long sample text that should wrap to the next line. Let's make it even longer to ensure it wraps multiple times. We need to be absolutely sure that the text wrapping functionality works as expected in various scenarios and on different screen sizes. This long text serves as a good test case for this purpose. Adding more words to make it even longer and test the limits of the layout. The quick brown fox jumps over the lazy dog. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
             createdAt = Instant.now(),
-            qrCodeSource = QrCodeSource.SCANNED
+            qrCodeSource = QrCodeSource.SCANNED,
+            isFavorite = false
         )
         ResultScreen(
             qrCode = qrCode,
-            qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
             isEditMode = false,
             label = null,
             onAction = {}
@@ -292,13 +336,13 @@ fun ScannerResultContactPreview() {
                 phone = "123-456-7890"
             ),
             createdAt = Instant.now(),
-            qrCodeSource = QrCodeSource.SCANNED
+            qrCodeSource = QrCodeSource.SCANNED,
+            isFavorite = false
         )
         ResultScreen(
             qrCode = qrCode,
             isEditMode = false,
             label = null,
-            qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
             onAction = {}
         )
     }
@@ -314,11 +358,11 @@ fun ScannerResultGeoPreview() {
                 longitude = "-122.4194"
             ),
             createdAt = Instant.now(),
-            qrCodeSource = QrCodeSource.SCANNED
+            qrCodeSource = QrCodeSource.SCANNED,
+            isFavorite = false
         )
         ResultScreen(
             qrCode = qrCode,
-            qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
             isEditMode = false,
             label = null,
             onAction = {}
@@ -333,11 +377,11 @@ fun ScannerResultLinkPreview() {
         val qrCode = QrCode(
             qrCodeData = QrCodeData.Link(url = "https://www.example.com"),
             createdAt = Instant.now(),
-            qrCodeSource = QrCodeSource.SCANNED
+            qrCodeSource = QrCodeSource.SCANNED,
+            isFavorite = false
         )
         ResultScreen(
             qrCode = qrCode,
-            qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
             isEditMode = false,
             label = null,
             onAction = {}
@@ -352,11 +396,11 @@ fun ScannerResultPhonePreview() {
         val qrCode = QrCode(
             qrCodeData = QrCodeData.Phone(number = "987-654-3210"),
             createdAt = Instant.now(),
-            qrCodeSource = QrCodeSource.SCANNED
+            qrCodeSource = QrCodeSource.SCANNED,
+            isFavorite = false
         )
         ResultScreen(
             qrCode = qrCode,
-            qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
             isEditMode = false,
             label = null,
             onAction = {}
@@ -375,11 +419,11 @@ fun ScannerResultWifiPreview() {
                 encryptionType = "WPA"
             ),
             createdAt = Instant.now(),
-            qrCodeSource = QrCodeSource.SCANNED
+            qrCodeSource = QrCodeSource.SCANNED,
+            isFavorite = false
         )
         ResultScreen(
             qrCode = qrCode,
-            qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCode.qrCodeData.asString()),
             isEditMode = false,
             label = null,
             onAction = {}

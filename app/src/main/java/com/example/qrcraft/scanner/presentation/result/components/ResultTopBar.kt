@@ -19,10 +19,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.qrcraft.R
 import com.example.qrcraft.ui.theme.QRCraftTheme
 import com.example.qrcraft.ui.theme.onOverlay
+import com.example.qrcraft.ui.theme.onSurfaceDisabled
 
 @Composable
 fun ResultTopBar(
+    isFavorite: Boolean,
     onBackClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     CenterAlignedTopAppBar(
@@ -42,6 +45,20 @@ fun ResultTopBar(
                 )
             }
         },
+        actions = {
+            IconButton(onClick = onFavoriteClick) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(
+                        if (isFavorite)
+                            R.drawable.star_filled
+                        else
+                            R.drawable.star_01
+                    ),
+                    contentDescription = stringResource(R.string.favorite),
+                    tint = if (isFavorite) MaterialTheme.colorScheme.onOverlay else MaterialTheme.colorScheme.onSurfaceDisabled
+                )
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent
         ),
@@ -53,6 +70,10 @@ fun ResultTopBar(
 @Composable
 fun ResultTopBarPreview() {
     QRCraftTheme {
-        ResultTopBar(onBackClick = { })
+        ResultTopBar(
+            isFavorite = false,
+            onBackClick = { },
+            onFavoriteClick = { }
+        )
     }
 }

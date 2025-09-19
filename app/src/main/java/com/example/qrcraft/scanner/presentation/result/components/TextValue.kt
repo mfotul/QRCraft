@@ -1,6 +1,7 @@
 package com.example.qrcraft.scanner.presentation.result.components
 
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +40,9 @@ fun TextValue(
     else
         MaterialTheme.typography.bodyLarge
 
-    SubcomposeLayout(modifier = modifier) { constraints ->
+    SubcomposeLayout(
+        modifier = modifier.animateContentSize()
+    ) { constraints ->
         val textPlaceable = subcompose("text") {
             Text(
                 text = buildAnnotatedString {

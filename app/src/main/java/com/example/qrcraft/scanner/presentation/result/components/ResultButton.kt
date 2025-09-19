@@ -26,6 +26,7 @@ import com.example.qrcraft.ui.theme.QRCraftTheme
 fun ResultButton(
     @DrawableRes icon: Int,
     @StringRes text: Int,
+    withText: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -47,13 +48,14 @@ fun ResultButton(
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(16.dp)
             )
-            Text(
-                text = stringResource(text),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    letterSpacing = (-0.01).em
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            if (withText)
+                Text(
+                    text = stringResource(text),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        letterSpacing = (-0.01).em
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
         }
 
     }
@@ -66,6 +68,7 @@ fun ResultShareButtonPreview() {
         ResultButton(
             R.drawable.share_03,
             R.string.share,
+            false,
             onClick = {}
         )
     }
@@ -78,6 +81,7 @@ fun ResultCopyButtonPreview() {
         ResultButton(
             R.drawable.copy_01,
             R.string.copy,
+            true,
             onClick = {}
         )
     }

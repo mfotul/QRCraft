@@ -15,8 +15,8 @@ fun QrCodeEntity.toQrCode(): QrCode {
         qrCodeData = Json.decodeFromString<QrCodeDataDto>(this.qrCodeData).toDomain(),
         createdAt = Instant.ofEpochMilli(this.createdAt),
         label = this.label,
-        qrCodeSource = QrCodeSource.valueOf(this.qrCodeSource)
-
+        qrCodeSource = QrCodeSource.valueOf(this.qrCodeSource),
+        isFavorite = this.isFavorite
     )
 }
 
@@ -27,5 +27,6 @@ fun QrCode.toQrCodeEntity(): QrCodeEntity {
         createdAt = this.createdAt.toEpochMilli(),
         label = this.label,
         qrCodeSource = this.qrCodeSource.name,
+        isFavorite = this.isFavorite
     )
 }

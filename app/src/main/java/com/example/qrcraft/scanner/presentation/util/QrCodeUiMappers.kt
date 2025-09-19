@@ -9,6 +9,18 @@ fun QrCode.toQrCodeUi(): QrCodeUi {
         qrCodeData = qrCodeData,
         createdAt = createdAt,
         label = label,
-        qrCodeSource = qrCodeSource
+        qrCodeSource = qrCodeSource,
+        isFavorite = isFavorite
+    )
+}
+
+fun QrCodeUi.toQrCode(): QrCode {
+    return QrCode(
+        id = id,
+        qrCodeData = qrCodeData,
+        createdAt = createdAt,
+        label = label,
+        qrCodeSource = qrCodeSource,
+        isFavorite = isFavorite
     )
 }

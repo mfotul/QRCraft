@@ -5,13 +5,15 @@ package com.example.qrcraft.scanner.presentation.history
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.qrcraft.scanner.data.result.QrCodeUtil
+import com.example.qrcraft.scanner.data.result.generateQrCodeBitmap
+import com.example.qrcraft.scanner.domain.ImageStorage
 import com.example.qrcraft.scanner.domain.ScannerDataSource
 import com.example.qrcraft.scanner.domain.models.QrCodeSource
 import com.example.qrcraft.scanner.domain.models.asString
 import com.example.qrcraft.scanner.presentation.history.models.Destination
 import com.example.qrcraft.scanner.presentation.models.QrCodeUi
 import com.example.qrcraft.scanner.presentation.util.ShareCopyQrCode
+import com.example.qrcraft.scanner.presentation.util.toQrCode
 import com.example.qrcraft.scanner.presentation.util.toQrCodeUi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +26,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class HistoryViewModel(
-    private val scannerDataSource: ScannerDataSource
+    private val scannerDataSource: ScannerDataSource,
+    private val imageStorage: ImageStorage
 ) : ViewModel() {
 
     private var hasLoadedInitialData = false
@@ -56,17 +59,27 @@ class HistoryViewModel(
             HistoryAction.OnDismissBottomSheet -> showBottomSheet(isShown = false, qrCode = null)
             HistoryAction.OnDeleteClick -> deleteQrCode()
             is HistoryAction.OnShareClick -> shareQrCode(action.context)
+            is HistoryAction.OnFavoriteClick -> toggleFavorite(action.qrCodeUi)
+        }
+    }
+
+    private fun toggleFavorite(qrCodeUi: QrCodeUi) {
+        viewModelScope.launch {
+            scannerDataSource.updateQrCode(
+                qrCodeUi.copy(isFavorite = !qrCodeUi.isFavorite).toQrCode()
+            )
         }
     }
 
     private fun shareQrCode(context: Context) {
         viewModelScope.launch {
             state.value.selectedQrCode?.let { qrCodeUi ->
-                val qrCodeBitmap = QrCodeUtil.generateQrCodeBitmap(qrCodeUi.qrCodeData.asString())
+                val qrCodeBitmap = generateQrCodeBitmap(qrCodeUi.qrCodeData.asString())
+                val tempUri = imageStorage.saveTemporary(qrCodeBitmap)
                 ShareCopyQrCode.shareQrCodeWithBitmap(
                     context = context,
                     qrCodeData = qrCodeUi.qrCodeData,
-                    qrCodeBitmap = qrCodeBitmap
+                    uri = tempUri
                 )
                 showBottomSheet(isShown = false, qrCode = null)
             }
