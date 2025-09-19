@@ -8,7 +8,7 @@ import android.net.Uri
 import com.example.qrcraft.scanner.domain.models.QrCodeData
 
 object ShareCopyQrCode {
-    suspend fun shareQrCodeWithBitmap(
+    fun shareQrCodeWithBitmap(
         context: Context,
         qrCodeData: QrCodeData,
         uri: Uri
